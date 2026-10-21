@@ -31,8 +31,8 @@ import { safeUploadName } from './index.js'
 /** Root below the DSH home (DSH_HOME when set, `~/.dsh` otherwise). */
 const ROOT_RELATIVE = join('tmp', 'prompt-attachments')
 
-/** The relay's own 100 MiB binary-channel cap, mirrored here. */
-export const PROMPT_ATTACHMENT_MAX_BYTES = 100 * 1024 * 1024
+/** The relay's own 500 MiB binary-channel cap, mirrored here. */
+export const PROMPT_ATTACHMENT_MAX_BYTES = 500 * 1024 * 1024
 
 /** ZCode's janitor window. */
 const STALE_AFTER_MS = 24 * 60 * 60 * 1000

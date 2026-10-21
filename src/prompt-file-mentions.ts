@@ -44,8 +44,8 @@ export interface FileMention {
   path: string
 }
 
-/** Uploads are bounded by the relay's own 100 MiB binary channel. */
-const MAX_UPLOAD_BYTES = 100 * 1024 * 1024
+/** Uploads are bounded by the relay's own 500 MiB binary channel. */
+const MAX_UPLOAD_BYTES = 500 * 1024 * 1024
 /** More than this many locales paths in one prompt is a paste accident, not intent. */
 const MAX_MENTIONS = 8
 

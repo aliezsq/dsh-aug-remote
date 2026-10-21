@@ -1,4 +1,4 @@
-/** The relay's own 100 MiB binary-channel cap, mirrored here. */
+/** The relay's own 500 MiB binary-channel cap, mirrored here. */
 export declare const PROMPT_ATTACHMENT_MAX_BYTES: number;
 /** One materialization request (the relay route's parsed query + body). */
 export interface PromptAttachmentSaveInput {
