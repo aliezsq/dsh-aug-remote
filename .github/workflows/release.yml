@@ -38,7 +38,12 @@ jobs:
 
       - run: npm pack
 
-      - name: Create GitHub Release with the tarball
-        run: gh release create "$GITHUB_REF_NAME" ./dsh-zen-remote-*.tgz --generate-notes --title "$GITHUB_REF_NAME"
+      - name: Create GitHub Release with the tarball and the client scripts
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          ./dsh-zen-remote-*.tgz
+          ./scripts/install-client.ps1
+          ./scripts/rollback-client.ps1
+          --generate-notes --title "$GITHUB_REF_NAME"
         env:
           GH_TOKEN: ${{ github.token }}
