@@ -4,14 +4,11 @@
 > **这是 [KyoMio/dsh-zen-remote](https://github.com/KyoMio/dsh-zen-remote) 的个人 fork**：在它基础上加了远程产物下载、Office 预览中继、客户端本地文件物化上传和 500 MiB 上传上限。它不是官方插件，也不代表上游立场。请从本仓库的 Release 安装；改动与维护说明见 [NOTICE](NOTICE) 与 [FORK.md](FORK.md)。
 
 <p align="center">
-<a href="https://www.npmjs.com/package/dsh-zen-remote"><img src="https://img.shields.io/npm/v/dsh-zen-remote?style=flat-square&color=5B4CF0&logo=npm&label=npm" alt="npm version"></a>
-<a href="https://www.npmjs.com/package/dsh-zen-remote"><img src="https://img.shields.io/npm/dm/dsh-zen-remote?style=flat-square&color=0B7285&label=downloads" alt="npm downloads"></a>
-<a href="https://github.com/KyoMio/dsh-zen-remote/actions/workflows/publish.yml"><img src="https://img.shields.io/github/actions/workflow/status/KyoMio/dsh-zen-remote/publish.yml?style=flat-square&label=publish&logo=githubactions&logoColor=white" alt="publish workflow"></a>
+<a href="https://github.com/aliezsq/dsh-aug-remote/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/aliezsq/dsh-aug-remote/release.yml?style=flat-square&label=release&logo=githubactions&logoColor=white" alt="release workflow"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0B7285?style=flat-square" alt="MIT"></a>
 <br>
 <img src="https://img.shields.io/badge/DeepSeek%20Harness-0.1.7%20%E2%80%93%200.2.x-4D6BFE?style=flat-square" alt="DeepSeek Harness 0.1.7 – 0.2.x">
 <img src="https://img.shields.io/node/v/dsh-zen-remote?style=flat-square&color=339933&logo=nodedotjs&logoColor=white" alt="Node">
-<a href="https://www.npmjs.com/package/dsh-zen-remote#provenance"><img src="https://img.shields.io/badge/npm-provenance%20signed-CB3837?style=flat-square&logo=npm&logoColor=white" alt="npm provenance"></a>
 <img src="https://img.shields.io/badge/PWA-Web%20Push-5A0FC8?style=flat-square&logo=pwa&logoColor=white" alt="PWA + Web Push">
 <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript strict">
 </p>
