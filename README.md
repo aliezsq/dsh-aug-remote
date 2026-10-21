@@ -94,7 +94,7 @@ dsh plugin --profile web add dsh-zen-remote
 // ~/.dsh/profiles/desktop/package.json
 {
   "dependencies": {
-    "dsh-zen-remote": "^2.2.5"        // for local development: "link:/path/to/dsh-zen-remote"
+    "dsh-zen-remote": "^2.2.6"        // for local development: "link:/path/to/dsh-zen-remote"
   }
 }
 ```
@@ -305,6 +305,7 @@ The `push_notify` tool. The model should call it when you explicitly asked to be
 **Desktop client (2.0 additions)**
 
 - Remote groups in the sidebar ("server name · workspace name"), remote sessions open like local ones: full history, live progress, messages, cancels, queue edits, approvals and question answers, model selection, file tree, changes list plus changes summary/diff, goals, slash commands, agent presets, subagent prompts/interrupts, attachments and @ references, terminals running server-side
+- Artifacts a remote session produces can be **downloaded to this computer** (2.2.6): the deliverable card and the document preview header each carry a "download to this computer" action that reads the host file through the relay in byte windows (any file size, never held whole in memory) and hands it to the browser; Word/Excel/PPT previews are now rendered to PDF by the host's LibreOffice (`officeToPdf/*` is on the relay allowlist) instead of failing with "not supported in remote sessions"
 - Remote sessions can attach **non-image files**: the upload request is caught by the sub-client's own backend and streamed through the relay to the server session; the 100 MiB cap is the relay's own (local uploads have no such limit), an over-limit pick is refused locally on the client with a readable message, and slow links are bounded by the 300-second timeout
 - The model picker in a remote session lists the **server's** model catalog (groups named "server name · group name"), local sessions list only local models; the last-fetched server groups survive while the relay is offline; server groups never appear in local settings such as the vision router. Known boundary: a session created on the server that has never sent a message shows the local default model in the picker
 - New sessions created inside a remote group run on the server's workspace and are shared automatically; remote sessions can be renamed, archived, pinned, forked, and their remote access closed (with confirmation) from the client
