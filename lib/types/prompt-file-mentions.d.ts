@@ -24,7 +24,8 @@ export declare function isAbsolutePathMention(path: string): boolean;
  * @returns the mention ranges and their paths.
  */
 export declare function fileMentionsIn(text: string): FileMention[];
-/** The relay face this module needs (invoke for the host probe, upload for bytes). */
+/** The relay face this module needs (invoke for the host probe, the two
+ * binary channels for bytes). */
 export interface MentionRelay {
     invoke(namespace: string, method: string, args: unknown, signal?: AbortSignal): Promise<unknown>;
     upload(options: {
@@ -35,6 +36,15 @@ export interface MentionRelay {
     }, signal?: AbortSignal): Promise<{
         status: number;
         body: string;
+    }>;
+    /** Visible-path upload (2.3.0); absent on an older client wiring. */
+    promptAttachment?(options: {
+        sessionId: string;
+        name?: string;
+        body: ReadableStream<Uint8Array> | null;
+        bytes?: number;
+    }, signal?: AbortSignal): Promise<{
+        path: string;
     }>;
 }
 /**

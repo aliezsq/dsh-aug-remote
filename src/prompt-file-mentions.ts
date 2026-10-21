@@ -99,13 +99,19 @@ export function fileMentionsIn(text: string): FileMention[] {
   return mentions
 }
 
-/** The relay face this module needs (invoke for the host probe, upload for bytes). */
+/** The relay face this module needs (invoke for the host probe, the two
+ * binary channels for bytes). */
 export interface MentionRelay {
   invoke(namespace: string, method: string, args: unknown, signal?: AbortSignal): Promise<unknown>
   upload(
     options: { sessionId: string; name?: string; body: ReadableStream<Uint8Array> | null; bytes?: number },
     signal?: AbortSignal,
   ): Promise<{ status: number; body: string }>
+  /** Visible-path upload (2.3.0); absent on an older client wiring. */
+  promptAttachment?(
+    options: { sessionId: string; name?: string; body: ReadableStream<Uint8Array> | null; bytes?: number },
+    signal?: AbortSignal,
+  ): Promise<{ path: string }>
 }
 
 /** The content blocks a prompt carries (mirror of the wire union). */
@@ -160,19 +166,40 @@ async function isLocalFile(path: string): Promise<unknown | undefined> {
   }
 }
 
-/** One local file's staged receipt, or undefined when it must stay text. */
+/** One local file staged on the host, or undefined when it must stay text. */
+type StagedFile =
+  /** Visible path on the server: rewrite the mention to it. */
+  | { kind: 'path'; path: string; length: number }
+  /** Official attachment receipt: prepend a file block, drop the mention. */
+  | { kind: 'receipt'; receiptId: string; length: number }
+
 async function stageLocalFile(
   relay: MentionRelay,
   sessionId: string,
   path: string,
   signal?: AbortSignal,
-): Promise<{ receiptId: string; length: number } | undefined> {
+): Promise<StagedFile | undefined> {
   const resolved = await resolveLocalFile(path)
   if (resolved === undefined) return undefined
   path = resolved.path
   const info = (await isLocalFile(path)) as { size: number } | undefined
   if (info === undefined || info.size > MAX_UPLOAD_BYTES) return undefined
   if (await hostHasPath(relay, sessionId, path, signal)) return undefined
+  // Prefer the visible-path materialization (ZCode's model): the prompt keeps
+  // an `@<server path>` the agent reads with ordinary tools. An older host
+  // answers 501 here (or lacks the method), and the attachment-receipt branch
+  // below still delivers the bytes.
+  if (relay.promptAttachment !== undefined) {
+    try {
+      const body = Readable.toWeb(createReadStream(path)) as ReadableStream<Uint8Array>
+      const uploaded = await relay.promptAttachment({ sessionId, name: basename(path), body, bytes: info.size }, signal)
+      if (typeof uploaded.path === 'string' && uploaded.path !== '') {
+        return { kind: 'path', path: uploaded.path, length: resolved.length }
+      }
+    } catch {
+      // Fall through to the receipt channel.
+    }
+  }
   try {
     const body = Readable.toWeb(createReadStream(path)) as ReadableStream<Uint8Array>
     const result = await relay.upload({ sessionId, name: basename(path), body, bytes: info.size }, signal)
@@ -181,7 +208,7 @@ async function stageLocalFile(
     if (typeof parsed !== 'object' || parsed === null) return undefined
     const envelope = parsed as { ok?: unknown; value?: { receiptId?: unknown } }
     if (envelope.ok !== true || typeof envelope.value?.receiptId !== 'string') return undefined
-    return { receiptId: envelope.value.receiptId, length: resolved.length }
+    return { kind: 'receipt', receiptId: envelope.value.receiptId, length: resolved.length }
   } catch {
     return undefined
   }
@@ -234,10 +261,16 @@ export async function materializeLocalFileMentions(
       if (mention === undefined || stagedCount >= MAX_MENTIONS) continue
       const stagedFile = await stageLocalFile(relay, scope.sessionId, mention.path, signal)
       if (stagedFile === undefined) continue
-      staged.unshift({ type: 'file', receiptId: stagedFile.receiptId })
       stagedCount += 1
-      // Remove `@` + the RESOLVED path only; prose glued after it stays.
-      next = next.slice(0, mention.start) + next.slice(mention.start + 1 + stagedFile.length)
+      const before = next.slice(0, mention.start)
+      const after = next.slice(mention.start + 1 + stagedFile.length)
+      if (stagedFile.kind === 'path') {
+        // Keep the mention, point it at the server-side copy: `@<remote path>`.
+        next = `${before}@${stagedFile.path}${after}`
+      } else {
+        staged.unshift({ type: 'file', receiptId: stagedFile.receiptId })
+        next = `${before}${after}`
+      }
       changed = true
     }
     blocks.push(next === text ? raw : { ...(raw as object), text: next })

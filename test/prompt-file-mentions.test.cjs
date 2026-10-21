@@ -12,10 +12,24 @@ const { mkdtemp, writeFile, rm } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { join } = require('node:path')
 
-/** Fake relay: records invokes/uploads; `hostHas` decides the stat probe. */
-function fakeRelay({ hostHas = false, uploadOk = true } = {}) {
-  const calls = { invokes: [], uploads: [] }
-  return {
+/** Read a web stream fully (utf8). */
+async function readBody(stream) {
+  if (stream === null) return ''
+  const chunks = []
+  const reader = stream.getReader()
+  for (;;) {
+    const next = await reader.read()
+    if (next.done) break
+    chunks.push(Buffer.from(next.value))
+  }
+  return Buffer.concat(chunks).toString('utf8')
+}
+
+/** Fake relay: records invokes/uploads; `hostHas` decides the stat probe and
+ * `pathMode` drives the visible-path channel (`none` = an older host). */
+function fakeRelay({ hostHas = false, uploadOk = true, pathMode = 'none', remotePath = '/host/.dsh/tmp/prompt-attachments/session-a/20261021-1100-ab-日志.txt' } = {}) {
+  const calls = { invokes: [], uploads: [], promptAttachments: [] }
+  const relay = {
     calls,
     async invoke(namespace, method, args) {
       calls.invokes.push({ namespace, method, args })
@@ -23,21 +37,22 @@ function fakeRelay({ hostHas = false, uploadOk = true } = {}) {
       throw Object.assign(new Error('not-found'), { code: 'workspace-file/not-found' })
     },
     async upload(options) {
-      const chunks = []
-      if (options.body !== null) {
-        const reader = options.body.getReader()
-        for (;;) {
-          const next = await reader.read()
-          if (next.done) break
-          chunks.push(Buffer.from(next.value))
-        }
-      }
-      calls.uploads.push({ ...options, body: undefined, bytesRead: Buffer.concat(chunks).toString('utf8') })
+      const bytes = await readBody(options.body)
+      calls.uploads.push({ ...options, body: undefined, bytesRead: bytes })
       return uploadOk
         ? { status: 200, body: JSON.stringify({ ok: true, value: { receiptId: 'receipt-1', file: { attachmentId: 'a', name: 'x', bytes: 1 } } }) }
         : { status: 200, body: JSON.stringify({ ok: false, error: { code: 'payload-too-large', message: 'x', details: {} } }) }
     },
   }
+  if (pathMode !== 'none') {
+    relay.promptAttachment = async (options) => {
+      const bytes = await readBody(options.body)
+      calls.promptAttachments.push({ ...options, body: undefined, bytesRead: bytes })
+      if (pathMode === 'throw') throw Object.assign(new Error('unsupported'), { code: 'unsupported' })
+      return { path: remotePath }
+    }
+  }
+  return relay
 }
 
 test('fileMentionsIn: absolute POSIX / Windows / UNC paths, quoted and bare', async () => {
@@ -158,6 +173,48 @@ test('materialize: a path glued to CJK prose is resolved by the file system and 
     assert.deepEqual(args.request.content, [
       { type: 'file', receiptId: 'receipt-1' },
       { type: 'text', text: '你看能读到了吗）里' },
+    ])
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('materialize (2.3.0): the visible-path channel rewrites the mention to the SERVER path', async () => {
+  const { materializeLocalFileMentions } = await import('../src/prompt-file-mentions.ts')
+  const dir = await mkdtemp(join(tmpdir(), 'zr-mention-'))
+  const file = join(dir, '日志.txt')
+  await writeFile(file, 'hello-log')
+  try {
+    const relay = fakeRelay({ pathMode: 'ok' })
+    const args = { request: { sessionId: 'session-a', content: [{ type: 'text', text: `@${file} 能读了吗` }] } }
+    await materializeLocalFileMentions(args, relay)
+    assert.equal(relay.calls.promptAttachments.length, 1)
+    assert.equal(relay.calls.promptAttachments[0].sessionId, 'session-a')
+    assert.equal(relay.calls.promptAttachments[0].name, '日志.txt')
+    assert.equal(relay.calls.promptAttachments[0].bytesRead, 'hello-log')
+    assert.equal(relay.calls.uploads.length, 0, 'the receipt channel stays unused when the path channel works')
+    assert.deepEqual(args.request.content, [
+      { type: 'text', text: '@\/host/.dsh/tmp/prompt-attachments/session-a/20261021-1100-ab-日志.txt 能读了吗'.replace('@\\/', '@') },
+    ])
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('materialize (2.3.0): a host without the path route falls back to the attachment receipt', async () => {
+  const { materializeLocalFileMentions } = await import('../src/prompt-file-mentions.ts')
+  const dir = await mkdtemp(join(tmpdir(), 'zr-mention-'))
+  const file = join(dir, 'a.txt')
+  await writeFile(file, 'x')
+  try {
+    const relay = fakeRelay({ pathMode: 'throw' })
+    const args = { request: { sessionId: 's', content: [{ type: 'text', text: `@${file} 看下` }] } }
+    await materializeLocalFileMentions(args, relay)
+    assert.equal(relay.calls.promptAttachments.length, 1)
+    assert.equal(relay.calls.uploads.length, 1, 'the receipt channel carried the bytes')
+    assert.deepEqual(args.request.content, [
+      { type: 'file', receiptId: 'receipt-1' },
+      { type: 'text', text: ' 看下' },
     ])
   } finally {
     await rm(dir, { recursive: true, force: true })
