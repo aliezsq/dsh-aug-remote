@@ -57,9 +57,11 @@ export function isAbsolutePathMention(path: string): boolean {
 /**
  * Every absolute-path `@` mention in one text part, in order.
  *
- * A mention starts at `@` when the preceding character cannot be part of an
- * identifier (start of text, whitespace, an opening bracket, or common CJK
- * punctuation — `邮箱@example.com` must not become a path). The quoted form
+ * A mention starts at `@` unless the preceding character could be part of an
+ * ASCII identifier local-part — `邮箱@example.com` / `foo@/root/x` must not
+ * become paths, while a CJK character or prose punctuation immediately before
+ * the `@` does open one (dragging a file into a half-typed Chinese sentence
+ * inserts `吗@C:\...` with no space). The quoted form
  * `@"…"` ends at the closing quote; the bare form ends at whitespace. A
  * trailing `)`, `]`, `}` or `）` is trimmed because prose wraps paths in
  * them; a bare token with none of those follows.
@@ -71,7 +73,10 @@ export function fileMentionsIn(text: string): FileMention[] {
   for (let index = 0; index < text.length; index += 1) {
     if (text[index] !== '@') continue
     const previous = index === 0 ? '' : text[index - 1] ?? ''
-    if (previous !== '' && !/[\s([{（【，。,:：;；!?]/u.test(previous)) continue
+    // Only an ASCII identifier character blocks the mention (email/URI local
+    // parts). Everything else — whitespace, brackets, CJK letters and CJK
+    // punctuation — is prose around a dropped file.
+    if (/[A-Za-z0-9._%+-]/u.test(previous)) continue
     if (text[index + 1] === '"') {
       const close = text.indexOf('"', index + 2)
       if (close === -1) continue
@@ -119,20 +124,54 @@ async function hostHasPath(relay: MentionRelay, sessionId: string, path: string,
   }
 }
 
+/** How many glued trailing characters a bare mention may be trimmed by. */
+const MAX_SUFFIX_TRIM = 24
+
+/**
+ * The longest PREFIX of a syntactic mention that is a real local file.
+ *
+ * The composer inserts `@<path>` at the caret, so a drop into a half-typed
+ * sentence reads `…吗@C:\Users\me\Desktop\日志.txt`; a path followed by
+ * CJK prose punctuation glues that punctuation onto our whitespace-delimited
+ * token (`@…\b.txt）里`). The token's own trailing-punctuation trim cannot
+ * fix the second case, so the FILE SYSTEM decides: try the token, then drop
+ * one trailing character at a time (bounded) and take the longest existing
+ * file. Only missing paths pay this cost.
+ * @param raw - the syntactic token from {@link fileMentionsIn}.
+ * @returns the existing file path and its length in code units, or undefined.
+ */
+async function resolveLocalFile(raw: string): Promise<{ path: string; length: number } | undefined> {
+  const first = await isLocalFile(raw)
+  if (first !== undefined) return { path: raw, length: raw.length }
+  const floor = Math.max(1, raw.length - MAX_SUFFIX_TRIM)
+  for (let length = raw.length - 1; length >= floor; length -= 1) {
+    const candidate = raw.slice(0, length)
+    if (await isLocalFile(candidate) !== undefined) return { path: candidate, length }
+  }
+  return undefined
+}
+
+async function isLocalFile(path: string): Promise<unknown | undefined> {
+  try {
+    const info = await stat(path)
+    return info.isFile() ? info : undefined
+  } catch {
+    return undefined
+  }
+}
+
 /** One local file's staged receipt, or undefined when it must stay text. */
 async function stageLocalFile(
   relay: MentionRelay,
   sessionId: string,
   path: string,
   signal?: AbortSignal,
-): Promise<string | undefined> {
-  let info
-  try {
-    info = await stat(path)
-  } catch {
-    return undefined
-  }
-  if (!info.isFile() || info.size > MAX_UPLOAD_BYTES) return undefined
+): Promise<{ receiptId: string; length: number } | undefined> {
+  const resolved = await resolveLocalFile(path)
+  if (resolved === undefined) return undefined
+  path = resolved.path
+  const info = (await isLocalFile(path)) as { size: number } | undefined
+  if (info === undefined || info.size > MAX_UPLOAD_BYTES) return undefined
   if (await hostHasPath(relay, sessionId, path, signal)) return undefined
   try {
     const body = Readable.toWeb(createReadStream(path)) as ReadableStream<Uint8Array>
@@ -142,7 +181,7 @@ async function stageLocalFile(
     if (typeof parsed !== 'object' || parsed === null) return undefined
     const envelope = parsed as { ok?: unknown; value?: { receiptId?: unknown } }
     if (envelope.ok !== true || typeof envelope.value?.receiptId !== 'string') return undefined
-    return envelope.value.receiptId
+    return { receiptId: envelope.value.receiptId, length: resolved.length }
   } catch {
     return undefined
   }
@@ -193,11 +232,12 @@ export async function materializeLocalFileMentions(
     for (let index = mentions.length - 1; index >= 0; index -= 1) {
       const mention = mentions[index]
       if (mention === undefined || stagedCount >= MAX_MENTIONS) continue
-      const receiptId = await stageLocalFile(relay, scope.sessionId, mention.path, signal)
-      if (receiptId === undefined) continue
-      staged.unshift({ type: 'file', receiptId })
+      const stagedFile = await stageLocalFile(relay, scope.sessionId, mention.path, signal)
+      if (stagedFile === undefined) continue
+      staged.unshift({ type: 'file', receiptId: stagedFile.receiptId })
       stagedCount += 1
-      next = next.slice(0, mention.start) + next.slice(mention.end)
+      // Remove `@` + the RESOLVED path only; prose glued after it stays.
+      next = next.slice(0, mention.start) + next.slice(mention.start + 1 + stagedFile.length)
       changed = true
     }
     blocks.push(next === text ? raw : { ...(raw as object), text: next })

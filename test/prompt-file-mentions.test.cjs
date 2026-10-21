@@ -51,12 +51,21 @@ test('fileMentionsIn: absolute POSIX / Windows / UNC paths, quoted and bare', as
   assert.deepEqual(fileMentionsIn('阅读 @\\\\server\\share\\x.log').map((m) => m.path), ['\\\\server\\share\\x.log'])
 })
 
-test('fileMentionsIn: emails, relative paths, and mid-word @ are not mentions', async () => {
+test('fileMentionsIn: emails, relative paths, and ASCII mid-word @ are not mentions', async () => {
   const { fileMentionsIn } = await import('../src/prompt-file-mentions.ts')
   assert.deepEqual(fileMentionsIn('联系 me@example.com'), [])
   assert.deepEqual(fileMentionsIn('@relative/path.md 看看'), [])
   assert.deepEqual(fileMentionsIn('foo@/root/x'), [])
   assert.deepEqual(fileMentionsIn('@'), [])
+})
+
+test('fileMentionsIn: a drop glued to a half-typed CJK sentence still opens a mention', async () => {
+  const { fileMentionsIn } = await import('../src/prompt-file-mentions.ts')
+  // The composer inserts at the caret: "我已经更新到2.2.8 你看能读到了吗@C:\...".
+  assert.deepEqual(fileMentionsIn('你看能读到了吗@C:\\Users\\me\\Desktop\\日志.txt').map((m) => m.path), ['C:\\Users\\me\\Desktop\\日志.txt'])
+  const glued = fileMentionsIn('日志在（@C:\\a\\b.txt）里')
+  assert.equal(glued.length, 1, 'prose punctuation before @ still opens the mention')
+  assert.ok(glued[0].path.startsWith('C:\\a\\b.txt'), 'the syntactic token may carry glued prose; resolution trims it')
 })
 
 test('fileMentionsIn: CJK punctuation before the mention still opens it (prose use)', async () => {
@@ -133,4 +142,24 @@ test('materialize: prompts without mentions are returned untouched (no relay cal
   await materializeLocalFileMentions(args, relay)
   assert.equal(JSON.stringify(args), snapshot)
   assert.equal(relay.calls.invokes.length + relay.calls.uploads.length, 0)
+})
+
+test('materialize: a path glued to CJK prose is resolved by the file system and only the path is removed', async () => {
+  const { materializeLocalFileMentions } = await import('../src/prompt-file-mentions.ts')
+  const dir = await mkdtemp(join(tmpdir(), 'zr-mention-'))
+  const file = join(dir, '日志.txt')
+  await writeFile(file, 'log-bytes')
+  try {
+    const relay = fakeRelay()
+    const args = { request: { sessionId: 's', content: [{ type: 'text', text: `你看能读到了吗@${file}）里` }] } }
+    await materializeLocalFileMentions(args, relay)
+    assert.equal(relay.calls.uploads.length, 1)
+    assert.equal(relay.calls.uploads[0].name, '日志.txt')
+    assert.deepEqual(args.request.content, [
+      { type: 'file', receiptId: 'receipt-1' },
+      { type: 'text', text: '你看能读到了吗）里' },
+    ])
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
 })

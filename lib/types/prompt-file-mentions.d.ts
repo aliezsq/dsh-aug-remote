@@ -12,9 +12,11 @@ export declare function isAbsolutePathMention(path: string): boolean;
 /**
  * Every absolute-path `@` mention in one text part, in order.
  *
- * A mention starts at `@` when the preceding character cannot be part of an
- * identifier (start of text, whitespace, an opening bracket, or common CJK
- * punctuation — `邮箱@example.com` must not become a path). The quoted form
+ * A mention starts at `@` unless the preceding character could be part of an
+ * ASCII identifier local-part — `邮箱@example.com` / `foo@/root/x` must not
+ * become paths, while a CJK character or prose punctuation immediately before
+ * the `@` does open one (dragging a file into a half-typed Chinese sentence
+ * inserts `吗@C:\...` with no space). The quoted form
  * `@"…"` ends at the closing quote; the bare form ends at whitespace. A
  * trailing `)`, `]`, `}` or `）` is trimmed because prose wraps paths in
  * them; a bare token with none of those follows.
