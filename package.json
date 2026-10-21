@@ -39,7 +39,9 @@
     "!docs/push-policy.md",
     "!docs/SPEC.md",
     "!docs/spike-relay.md",
-    "!docs/images"
+    "!docs/images",
+    "NOTICE",
+    "FORK.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.client.json && node scripts/build-client.mjs",

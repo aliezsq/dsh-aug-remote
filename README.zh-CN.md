@@ -1,6 +1,8 @@
 <h1 align="center">dsh-zen-remote</h1>
 <p align="center">一个 DeepSeek Harness 插件、两种角色。<b>主服务端</b>把 DSH 变成手机能安全访问的 PWA（手机界面、配对网关、锁屏推送），并把选定的会话共享给已配对的桌面端；<b>子客户端</b>跑在另一台 DSH 桌面端里，把服务端共享的会话直接摆进自己的侧边栏——完整历史、实时进度、发消息、审批、终端，全部在服务端执行。</p>
 
+> **这是 [KyoMio/dsh-zen-remote](https://github.com/KyoMio/dsh-zen-remote) 的个人 fork**：在它基础上加了远程产物下载、Office 预览中继、客户端本地文件物化上传和 500 MiB 上传上限。它不是官方插件，也不代表上游立场。请从本仓库的 Release 安装；改动与维护说明见 [NOTICE](NOTICE) 与 [FORK.md](FORK.md)。
+
 <p align="center">
 <a href="https://www.npmjs.com/package/dsh-zen-remote"><img src="https://img.shields.io/npm/v/dsh-zen-remote?style=flat-square&color=5B4CF0&logo=npm&label=npm" alt="npm version"></a>
 <a href="https://www.npmjs.com/package/dsh-zen-remote"><img src="https://img.shields.io/npm/dm/dsh-zen-remote?style=flat-square&color=0B7285&label=downloads" alt="npm downloads"></a>

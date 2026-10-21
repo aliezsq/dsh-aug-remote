@@ -1,6 +1,8 @@
 <h1 align="center">dsh-zen-remote</h1>
 <p align="center">One DeepSeek Harness plugin, two roles. The <b>host</b> turns DSH into a phone-reachable PWA (mobile UI, pairing gateway, lock-screen push) and shares chosen sessions to paired desktops. The <b>client</b> runs inside another DSH desktop app and puts the host's shared sessions right into its own sidebar — full history, live progress, messages, approvals, terminal, everything executes on the host.</p>
 
+> **This is a personal fork** of [KyoMio/dsh-zen-remote](https://github.com/KyoMio/dsh-zen-remote). It adds remote artifact download, relayed Office previews, host-materialized client-local file uploads and a 500 MiB upload cap. It is **not** the official plugin and is not endorsed by upstream. Install from this repository's Releases; see [NOTICE](NOTICE) and [FORK.md](FORK.md).
+
 <p align="center">
 <a href="https://www.npmjs.com/package/dsh-zen-remote"><img src="https://img.shields.io/npm/v/dsh-zen-remote?style=flat-square&color=5B4CF0&logo=npm&label=npm" alt="npm version"></a>
 <a href="https://www.npmjs.com/package/dsh-zen-remote"><img src="https://img.shields.io/npm/dm/dsh-zen-remote?style=flat-square&color=0B7285&label=downloads" alt="npm downloads"></a>

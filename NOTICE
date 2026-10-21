@@ -1,0 +1,26 @@
+dsh-zen-remote — fork notice
+============================
+
+This repository is a personal fork of KyoMio/dsh-zen-remote (MIT).
+Original project: https://github.com/KyoMio/dsh-zen-remote
+
+The upstream copyright notices and the MIT license are kept verbatim in
+LICENSE; all upstream contributors retain their copyright. This fork is not
+the official plugin and is not affiliated with or endorsed by the upstream
+maintainer.
+
+Changes carried by this fork on top of upstream 2.2.5 (see CHANGELOG below):
+
+- Remote artifact download: a "download to this computer" action on deliverable
+  cards and the document-preview header, reading through the relayed
+  workspaceFiles/readBytes channel in bounded windows.
+- Office preview relay: officeToPdf/render registered in the relay allowlist
+  (Word/Excel/PPT previews render on the host instead of failing remotely).
+- Client-local files carried into remote sessions: a dropped or pasted
+  @<client path> is materialized on the host at
+  ~/.dsh/tmp/prompt-attachments/<session>/<stamp>-<nonce>-<name> (0700/0600,
+  24h janitor) and the mention is rewritten to that SERVER path; an older
+  host without the route falls back to the attachment receipt.
+- Relay upload cap raised to 500 MiB (client budget 15 minutes).
+
+Maintenance and release policy: see FORK.md.

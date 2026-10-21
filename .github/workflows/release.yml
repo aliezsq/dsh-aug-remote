@@ -1,0 +1,44 @@
+# tag push (v*) -> build, verify, test, then attach the tarball to a GitHub
+# Release. This fork does NOT publish to npm: the package name
+# `dsh-zen-remote` belongs to upstream.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4 # version comes from package.json packageManager
+
+      - uses: actions/setup-node@v4
+        with:
+          # the interface self-check scripts import .ts directly and need
+          # Node >= 23.6 type stripping
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      # lib/ is a tracked artifact: the tag must match a fresh build
+      - run: git diff --exit-code -- lib
+
+      - run: pnpm verify
+
+      - run: pnpm test
+
+      - run: npm pack
+
+      - name: Create GitHub Release with the tarball
+        run: gh release create "$GITHUB_REF_NAME" ./dsh-zen-remote-*.tgz --generate-notes --title "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}
