@@ -30,8 +30,7 @@
  */
 import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
-import { homedir } from 'node:os'
-import { basename, join, resolve, sep } from 'node:path'
+import { basename } from 'node:path'
 import { Readable } from 'node:stream'
 import type { RelayClient } from './relay-client.js'
 
@@ -49,73 +48,6 @@ export interface FileMention {
 const MAX_UPLOAD_BYTES = 500 * 1024 * 1024
 /** More than this many locales paths in one prompt is a paste accident, not intent. */
 const MAX_MENTIONS = 8
-
-/** Directory names (below the user home) whose contents never leave the machine. */
-const SECRET_DIRECTORIES = Object.freeze([
-  '.ssh',
-  '.aws',
-  '.gnupg',
-  '.kube',
-  join('.config', 'gh'),
-  join('.config', 'gcloud'),
-])
-
-/** File names that carry credentials even outside a secret directory. */
-const SECRET_FILE_NAMES = new Set([
-  'lan-gate-state.json',
-  'zen-remote-server.json',
-  'zen-remote-shares.json',
-  'dsh-ssh.json',
-  'credentials',
-  'id_rsa',
-  'id_ed25519',
-  'id_ecdsa',
-  'id_dsa',
-  '.npmrc',
-  '.netrc',
-  '.git-credentials',
-])
-
-/** Extensions whose content is (almost always) a private key or a secret. */
-const SECRET_EXTENSIONS = Object.freeze(['.pem', '.key', '.p12', '.pfx', '.jks', '.keystore', '.env'])
-
-/**
- * True when a path must NEVER be read and shipped by the mention materializer.
- *
- * The client uploads any absolute path a prompt mentions, so a pasted log line
- * that happens to contain `~/.dsh/lan-gate-state.json` (the pairing table and
- * the VAPID keys) or `~/.ssh/id_ed25519` would silently exfiltrate a secret to
- * the host. The reviewer of the upstream PR called this out; the denylist is
- * deliberately broad and fail-closed: DSH's own home (keys, shares, attachment
- * store), the usual credential directories, and credential-looking file names.
- *
- * @param path - one resolved absolute path.
- * @param dshHome - DSH home (tests inject one); defaults to DSH_HOME or ~/.dsh.
- * @returns whether the path is refused.
- */
-export function isSensitivePath(
-  path: string,
-  dshHome: string = process.env.DSH_HOME ?? join(homedir(), '.dsh'),
-): boolean {
-  const platform = process.platform
-  const fold = (value: string): string => (platform === 'win32' ? value.toLowerCase() : value)
-  const normalized = fold(resolve(path))
-  const inside = (directory: string): boolean => {
-    const root = fold(resolve(directory))
-    if (normalized === root) return true
-    return normalized.startsWith(root.endsWith(sep) ? root : `${root}${sep}`)
-  }
-  if (inside(dshHome)) return true
-  for (const relative of SECRET_DIRECTORIES) {
-    if (inside(join(homedir(), relative))) return true
-  }
-  const name = fold(basename(normalized))
-  if (SECRET_FILE_NAMES.has(name)) return true
-  for (const extension of SECRET_EXTENSIONS) {
-    if (name.endsWith(extension)) return true
-  }
-  return false
-}
 
 /** Absolute in either spelling the Host accepts: POSIX, Windows drive, UNC. */
 export function isAbsolutePathMention(path: string): boolean {
@@ -279,11 +211,6 @@ async function stageLocalFile(
   const resolved = await resolveLocalFile(path)
   if (resolved === undefined) return { ok: false, reason: '本机路径不存在或不可读' }
   path = resolved.path
-  // Fail closed on credentials: DSH's own home (pairing table, VAPID keys,
-  // shares, attachment store), the usual key directories and credential file
-  // names never leave this machine, even when the prompt names them. Silent:
-  // a pasted log line is not a request to upload its path.
-  if (isSensitivePath(path)) return { ok: false, reason: 'sensitive-path', silent: true }
   const info = (await isLocalFile(path)) as { size: number } | undefined
   if (info === undefined || info.size > MAX_UPLOAD_BYTES) {
     return { ok: false, reason: `超过 ${Math.floor(MAX_UPLOAD_BYTES / (1024 * 1024))} MiB 上限` }

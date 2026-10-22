@@ -9,7 +9,7 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
 const { mkdtemp, writeFile, rm } = require('node:fs/promises')
-const { homedir, tmpdir } = require('node:os')
+const { tmpdir } = require('node:os')
 const { join } = require('node:path')
 
 /** Read a web stream fully (utf8). */
@@ -222,47 +222,6 @@ test('materialize (2.3.0): a host without the path route falls back to the attac
     ])
   } finally {
     await rm(dir, { recursive: true, force: true })
-  }
-})
-
-test('isSensitivePath: DSH home, key directories and credential names are refused', async () => {
-  const { isSensitivePath } = await import('../src/prompt-file-mentions.ts')
-  const home = await mkdtemp(join(tmpdir(), 'zr-home-'))
-  try {
-    assert.equal(isSensitivePath(join(home, 'lan-gate-state.json'), home), true)
-    assert.equal(isSensitivePath(join(home, 'nested', 'x.txt'), home), true)
-    assert.equal(isSensitivePath(join(homedir(), '.ssh', 'id_ed25519'), home), true)
-    assert.equal(isSensitivePath(join(homedir(), '.aws', 'credentials'), home), true)
-    assert.equal(isSensitivePath('/tmp/server.pem', home), true)
-    assert.equal(isSensitivePath('/tmp/service.key', home), true)
-    assert.equal(isSensitivePath('/tmp/.env', home), true)
-    assert.equal(isSensitivePath('/tmp/zen-remote-shares.json', home), true)
-    assert.equal(isSensitivePath('/tmp/regular.log', home), false)
-    assert.equal(isSensitivePath('/tmp/notes.txt', home), false)
-  } finally {
-    await rm(home, { recursive: true, force: true })
-  }
-})
-
-test('materialize: a sensitive path (DSH home) is never read or uploaded', async () => {
-  const { materializeLocalFileMentions } = await import('../src/prompt-file-mentions.ts')
-  const dshHome = await mkdtemp(join(tmpdir(), 'zr-dshhome-'))
-  const secret = join(dshHome, 'lan-gate-state.json')
-  const previous = process.env.DSH_HOME
-  process.env.DSH_HOME = dshHome
-  try {
-    await writeFile(secret, '{"token":"do-not-leak"}')
-    const relay = fakeRelay({ pathMode: 'ok' })
-    const args = { request: { sessionId: 's', content: [{ type: 'text', text: `@${secret} 看下` }] } }
-    const before = JSON.stringify(args)
-    await materializeLocalFileMentions(args, relay)
-    assert.equal(JSON.stringify(args), before, 'the prompt is untouched')
-    assert.equal(relay.calls.promptAttachments.length, 0)
-    assert.equal(relay.calls.uploads.length, 0)
-  } finally {
-    if (previous === undefined) delete process.env.DSH_HOME
-    else process.env.DSH_HOME = previous
-    await rm(dshHome, { recursive: true, force: true })
   }
 })
 

@@ -93,7 +93,7 @@ dsh plugin --profile web add dsh-aug-remote
 // ~/.dsh/profiles/desktop/package.json
 {
   "dependencies": {
-    "dsh-aug-remote": "^2.4.1"        // for local development: "link:/path/to/dsh-aug-remote"
+    "dsh-aug-remote": "^2.4.2"        // for local development: "link:/path/to/dsh-aug-remote"
   }
 }
 ```
