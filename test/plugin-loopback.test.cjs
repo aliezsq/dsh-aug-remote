@@ -238,7 +238,10 @@ test('a chunked plugin answer streams in order with its whitelisted headers', as
     dsh.release('chunk-3\n')
     dsh.finish()
     await done
-    assert.deepEqual(seen, ['chunk-1\n', 'chunk-2\n', 'chunk-3\n'], 'the chunks arrive in wire order')
+    // Node 24 (and a fast host) may COALESCE the last two writes into one
+    // 'data' event; the contract is wire ORDER, not one event per write.
+    assert.equal(seen[0], 'chunk-1\n', 'the first chunk arrives on its own')
+    assert.equal(seen.join(''), 'chunk-1\nchunk-2\nchunk-3\n', 'the bytes arrive in wire order')
   } finally {
     await dsh.stop()
   }
