@@ -1,5 +1,5 @@
 /**
- * Config resolution for dsh-zen-remote: one flat key space, four layers.
+ * Config resolution for dsh-aug-remote: one flat key space, four layers.
  *
  * 2.0.0 moved the settings surface to the DSH plugin row (the loader-owned
  * `Config` schema below), while long-time users keep their
@@ -31,7 +31,7 @@ import z from '@deepseek-ai/schemastery';
 /** Where a resolved field value came from, in resolution order. */
 export type ConfigSource = 'env' | 'row' | 'file' | 'default';
 /** The effective configuration one resolved value set, defaults included. */
-export interface ZenRemoteConfig {
+export interface AugRemoteConfig {
     /** Which half of the plugin runs in this DSH process; anything the layers
      * leave unresolved means `'host'` (see {@link resolveRole}). */
     role: 'host' | 'client';
@@ -76,7 +76,7 @@ export interface ZenRemoteConfig {
     pluginBridgeConsent: Record<string, boolean>;
 }
 /** Defaults, one per field — exactly what layer 4 hands back. */
-export declare const DEFAULTS: ZenRemoteConfig;
+export declare const DEFAULTS: AugRemoteConfig;
 /**
  * Peel the loader's volatile wrapper off a row value. Schemastery hands
  * `.volatile()` fields to apply() as cosmokit `{ get() }` reference objects,
@@ -98,8 +98,8 @@ export declare function unwrapVolatile(value: unknown): unknown;
  * @returns the merged values plus, per field, the layer it came from.
  */
 export declare function resolveConfig(row: unknown, file: Record<string, unknown>, env: NodeJS.ProcessEnv): {
-    values: ZenRemoteConfig;
-    sources: Record<keyof ZenRemoteConfig, ConfigSource>;
+    values: AugRemoteConfig;
+    sources: Record<keyof AugRemoteConfig, ConfigSource>;
 };
 /**
  * Read `<DSH_HOME>/lan-gate.config.json` (DSH_HOME defaulting to `~/.dsh`).

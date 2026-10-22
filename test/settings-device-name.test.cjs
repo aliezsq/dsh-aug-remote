@@ -1,4 +1,4 @@
-// dsh-zen-remote · T57 the shared device name on the role card
+// dsh-aug-remote · T57 the shared device name on the role card
 //
 // The 设备名称 input is the row's serverName field relocated: it renders in
 // the ROLE card on BOTH roles (host = the server display name, client = the
@@ -94,7 +94,7 @@ test('T59: the backend forwards a committed row name through the volatile-update
   // serverName feeds queueDeviceName on the loader's volatile-update
   // announcement, beside the credentials watcher that already lived there.
   const index = readFileSync(join(ROOT, 'src', 'index.ts'), 'utf8')
-  const watcherAt = index.indexOf("'dsh-zen-remote: relay credentials watcher'")
+  const watcherAt = index.indexOf("'dsh-aug-remote: relay credentials watcher'")
   assert.notEqual(watcherAt, -1, 'the credentials watcher is the anchor')
   const effectSource = index.slice(index.indexOf("ctx.on('loader/volatile-update'"), watcherAt)
   assert.ok(effectSource.includes('relayClient.credentialsChanged()'), 'the credentials watch is intact')

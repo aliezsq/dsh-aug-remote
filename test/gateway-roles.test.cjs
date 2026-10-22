@@ -1,4 +1,4 @@
-/* dsh-zen-remote · T13 gateway roles: device role, marking headers, relay admission.
+/* dsh-aug-remote · T13 gateway roles: device role, marking headers, relay admission.
  * Boots the real lib/lan-gate-server.cjs behind a RECORDING mock upstream
  * (every request and every WebSocket upgrade is captured) and exercises the
  * desktop-client device surface end to end over real HTTP/WS. */
@@ -155,13 +155,13 @@ test('T13-5: a desktop-client token walks the relay and nothing else', async () 
     // socket with no forwards IS the local user, by design).
     const auth = { ...REMOTE_HEADERS, authorization: 'Bearer ' + token }
 
-    const relay = await request(PORT, { path: '/_dsh/zen-remote/relay/ping', headers: auth })
+    const relay = await request(PORT, { path: '/_dsh/aug-remote/relay/ping', headers: auth })
     assert.strictEqual(relay.status, 200, 'relay path is forwarded')
-    const hit = target.seen.find((r) => r.path === '/_dsh/zen-remote/relay/ping')
+    const hit = target.seen.find((r) => r.path === '/_dsh/aug-remote/relay/ping')
     assert.ok(hit, 'upstream saw the relay request')
-    assert.strictEqual(hit.headers['x-zen-remote-via'], 'gateway')
-    assert.strictEqual(hit.headers['x-zen-remote-role'], 'desktop-client')
-    assert.strictEqual(hit.headers['x-zen-remote-device'], id)
+    assert.strictEqual(hit.headers['x-aug-remote-via'], 'gateway')
+    assert.strictEqual(hit.headers['x-aug-remote-role'], 'desktop-client')
+    assert.strictEqual(hit.headers['x-aug-remote-device'], id)
     assert.strictEqual(hit.headers.authorization, undefined, 'the gateway Bearer credential never reaches DSH')
 
     for (const p of ['/', '/api/x']) {
@@ -190,37 +190,37 @@ test('T13-6: web devices keep cookie access everywhere (marked role=web) and rej
     assert.strictEqual(page.status, 200)
     const hit = target.seen.find((r) => r.path === '/')
     assert.ok(hit, 'upstream saw the proxied page request')
-    assert.strictEqual(hit.headers['x-zen-remote-via'], 'gateway')
-    assert.strictEqual(hit.headers['x-zen-remote-role'], 'web')
-    assert.strictEqual(hit.headers['x-zen-remote-device'], id)
+    assert.strictEqual(hit.headers['x-aug-remote-via'], 'gateway')
+    assert.strictEqual(hit.headers['x-aug-remote-role'], 'web')
+    assert.strictEqual(hit.headers['x-aug-remote-device'], id)
 
     const bearer = await request(PORT, { path: '/', headers: { ...REMOTE_HEADERS, authorization: 'Bearer ' + token } })
     assert.strictEqual(bearer.status, 401, 'a web token in Authorization is not a desktop client')
 
-    const relay = await request(PORT, { path: '/_dsh/zen-remote/relay/ping', headers: { ...REMOTE_HEADERS, cookie } })
+    const relay = await request(PORT, { path: '/_dsh/aug-remote/relay/ping', headers: { ...REMOTE_HEADERS, cookie } })
     assert.strictEqual(relay.status, 200, 'the relay prefix is not gated for web devices (unchanged)')
   } finally { await stop() }
 })
 
 // ---- 7. forged marking headers ----------------------------------------------
-test('T13-7: client-sent x-zen-remote-* is stripped; only the gateway writes the real values', async () => {
+test('T13-7: client-sent x-aug-remote-* is stripped; only the gateway writes the real values', async () => {
   const { target, stop } = await boot()
   try {
-    const forged = { 'x-zen-remote-via': 'forged', 'x-zen-remote-role': 'desktop-client', 'x-zen-remote-device': 'spoof' }
+    const forged = { 'x-aug-remote-via': 'forged', 'x-aug-remote-role': 'desktop-client', 'x-aug-remote-device': 'spoof' }
 
     await request(PORT, { path: '/local-direct', headers: { accept: 'text/html', ...forged } })
     let hit = target.seen.find((r) => r.path === '/local-direct')
     assert.ok(hit, 'local direct request reached upstream')
-    const leaked = Object.keys(hit.headers).filter((k) => k.indexOf('x-zen-remote-') === 0)
-    assert.strictEqual(leaked.length, 0, 'local direct requests carry no x-zen-remote-* headers upstream, got: ' + leaked.join(','))
+    const leaked = Object.keys(hit.headers).filter((k) => k.indexOf('x-aug-remote-') === 0)
+    assert.strictEqual(leaked.length, 0, 'local direct requests carry no x-aug-remote-* headers upstream, got: ' + leaked.join(','))
 
     const { token, id } = await pairDesktop(PORT)
-    await request(PORT, { path: '/_dsh/zen-remote/relay/ping', headers: { ...REMOTE_HEADERS, authorization: 'Bearer ' + token, ...forged } })
-    hit = target.seen.find((r) => r.path === '/_dsh/zen-remote/relay/ping')
+    await request(PORT, { path: '/_dsh/aug-remote/relay/ping', headers: { ...REMOTE_HEADERS, authorization: 'Bearer ' + token, ...forged } })
+    hit = target.seen.find((r) => r.path === '/_dsh/aug-remote/relay/ping')
     assert.ok(hit, 'device relay request reached upstream')
-    assert.strictEqual(hit.headers['x-zen-remote-via'], 'gateway', 'forged via replaced by the gateway value')
-    assert.strictEqual(hit.headers['x-zen-remote-role'], 'desktop-client')
-    assert.strictEqual(hit.headers['x-zen-remote-device'], id, 'device id is the real one, not the forged spoof')
+    assert.strictEqual(hit.headers['x-aug-remote-via'], 'gateway', 'forged via replaced by the gateway value')
+    assert.strictEqual(hit.headers['x-aug-remote-role'], 'desktop-client')
+    assert.strictEqual(hit.headers['x-aug-remote-device'], id, 'device id is the real one, not the forged spoof')
   } finally { await stop() }
 })
 
@@ -235,11 +235,11 @@ test('T13-8: desktop-client upgrades only the relay prefix; revoking closes the 
     assert.ok(/HTTP\/1\.1 403/.test(rejected.buf), 'non-relay upgrade is refused, saw: ' + rejected.buf.slice(0, 40))
     try { rejected.sock.destroy() } catch (e) {}
 
-    const up = await rawUpgrade(PORT, '/_dsh/zen-remote/relay/ws', headers)
+    const up = await rawUpgrade(PORT, '/_dsh/aug-remote/relay/ws', headers)
     assert.ok(/HTTP\/1\.1 101/.test(up.buf), 'relay upgrade succeeds')
     assert.strictEqual(target.upgrades.length, 1, 'only the relay upgrade reached upstream')
-    assert.strictEqual(target.upgrades[0].headers['x-zen-remote-role'], 'desktop-client', 'the upgrade is marked for upstream too')
-    assert.strictEqual(target.upgrades[0].headers['x-zen-remote-device'], id)
+    assert.strictEqual(target.upgrades[0].headers['x-aug-remote-role'], 'desktop-client', 'the upgrade is marked for upstream too')
+    assert.strictEqual(target.upgrades[0].headers['x-aug-remote-device'], id)
     const closed = socketClosed(up.sock)
 
     await request(PORT, { method: 'POST', path: '/lan-gate/action', body: { action: 'revoke', id } })
@@ -280,12 +280,12 @@ test('T13-10: /lan-gate/admin is a local-only signpost page and the admin chip i
   try {
     const zh = await request(PORT, { path: '/lan-gate/admin', headers: { 'accept-language': 'zh-CN' } })
     assert.strictEqual(zh.status, 200)
-    assert.ok(zh.body.includes('dsh-zen-remote'), 'the notice names the plugin')
+    assert.ok(zh.body.includes('dsh-aug-remote'), 'the notice names the plugin')
     assert.ok(zh.body.includes('插件'), 'Chinese notice for a Chinese browser')
 
     const en = await request(PORT, { path: '/lan-gate/admin', headers: { 'accept-language': 'en-US' } })
     assert.strictEqual(en.status, 200)
-    assert.ok(en.body.includes('dsh-zen-remote'))
+    assert.ok(en.body.includes('dsh-aug-remote'))
 
     const remote = await request(PORT, { path: '/lan-gate/admin', headers: REMOTE_HEADERS })
     assert.strictEqual(remote.status, 403, 'still local-only')
@@ -307,9 +307,9 @@ test('T13-fix-1: dot-segment, encoded-dot and backslash paths cannot escape the 
     const auth = { ...REMOTE_HEADERS, authorization: 'Bearer ' + token }
 
     const escapes = [
-      '/_dsh/zen-remote/relay/../../../api/x',
-      '/_dsh/zen-remote/relay/%2e%2e/%2E%2E/%2e%2e/api/x',
-      '/_dsh/zen-remote/relay/./x'
+      '/_dsh/aug-remote/relay/../../../api/x',
+      '/_dsh/aug-remote/relay/%2e%2e/%2E%2E/%2e%2e/api/x',
+      '/_dsh/aug-remote/relay/./x'
     ]
     for (const p of escapes) {
       const r = await request(PORT, { path: p, headers: auth })
@@ -319,7 +319,7 @@ test('T13-fix-1: dot-segment, encoded-dot and backslash paths cannot escape the 
 
     // Backslash traversal straight over a raw socket — a real HTTP client is
     // never in the loop for the shapes a hostile client sends.
-    const raw = await rawGet(PORT, '/_dsh/zen-remote/relay/..\\..\\..\\api/x', auth)
+    const raw = await rawGet(PORT, '/_dsh/aug-remote/relay/..\\..\\..\\api/x', auth)
     assert.ok(/HTTP\/1\.1 403/.test(raw), 'backslash traversal refused over a raw socket, saw: ' + raw.split('\r\n')[0])
 
     assert.strictEqual(target.seen.length, 0, 'upstream received none of the escape attempts')
@@ -333,9 +333,9 @@ test('T13-fix-1b: a double-slash relay path normalizes to itself and is forwarde
   const { target, stop } = await boot()
   try {
     const { token } = await pairDesktop(PORT)
-    const r = await request(PORT, { path: '/_dsh/zen-remote/relay//x', headers: { ...REMOTE_HEADERS, authorization: 'Bearer ' + token } })
+    const r = await request(PORT, { path: '/_dsh/aug-remote/relay//x', headers: { ...REMOTE_HEADERS, authorization: 'Bearer ' + token } })
     assert.strictEqual(r.status, 200, 'raw path === normalized path → allowed')
-    assert.ok(target.seen.some((h) => h.path === '/_dsh/zen-remote/relay//x'), 'forwarded verbatim')
+    assert.ok(target.seen.some((h) => h.path === '/_dsh/aug-remote/relay//x'), 'forwarded verbatim')
   } finally { await stop() }
 })
 
@@ -344,7 +344,7 @@ test('T13-fix-1c: the WebSocket upgrade applies the same normalization-aware gat
   try {
     const { token } = await pairDesktop(PORT)
     const headers = { ...REMOTE_HEADERS, authorization: 'Bearer ' + token }
-    for (const p of ['/_dsh/zen-remote/relay/../../../api/terminal/ws', '/_dsh/zen-remote/relay/%2e%2e/ws']) {
+    for (const p of ['/_dsh/aug-remote/relay/../../../api/terminal/ws', '/_dsh/aug-remote/relay/%2e%2e/ws']) {
       const up = await rawUpgrade(PORT, p, headers)
       assert.ok(/HTTP\/1\.1 403/.test(up.buf), p + ' upgrade refused, saw: ' + up.buf.slice(0, 40))
       try { up.sock.destroy() } catch (e) {}
@@ -362,18 +362,18 @@ test('T13-fix-1c: the WebSocket upgrade applies the same normalization-aware gat
 test('T13-fix-1d: an upstream 401 on a relay path reaches the desktop client verbatim, with no cookie exchange', async () => {
   const { target, stop } = await boot(
     { LAN_GATE_UPSTREAM_TOKEN_URL: 'http://127.0.0.1:' + TARGET_PORT + '/?token=TESTTOKEN' },
-    { statusFor: (p) => (p.indexOf('/_dsh/zen-remote/relay/locked') === 0 ? 401 : 0) }
+    { statusFor: (p) => (p.indexOf('/_dsh/aug-remote/relay/locked') === 0 ? 401 : 0) }
   )
   try {
     const { token } = await pairDesktop(PORT)
     const r = await request(PORT, {
-      path: '/_dsh/zen-remote/relay/locked',
+      path: '/_dsh/aug-remote/relay/locked',
       headers: { ...REMOTE_HEADERS, authorization: 'Bearer ' + token, accept: 'text/html' }
     })
     assert.strictEqual(r.status, 401, 'the upstream 401 passes through')
     assert.strictEqual(r.headers['set-cookie'], undefined, 'no DSH session cookie is minted for a desktop client')
     assert.ok(!target.seen.some((h) => String(h.path).indexOf('token=') >= 0), 'upstream never received a token-exchange request')
-    assert.ok(target.seen.some((h) => h.path === '/_dsh/zen-remote/relay/locked'), 'the relay request itself did reach upstream')
+    assert.ok(target.seen.some((h) => h.path === '/_dsh/aug-remote/relay/locked'), 'the relay request itself did reach upstream')
   } finally { await stop() }
 })
 

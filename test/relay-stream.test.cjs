@@ -1,7 +1,7 @@
-/* dsh-zen-remote · T22b streaming relay route (src/relay-server.ts)
+/* dsh-aug-remote · T22b streaming relay route (src/relay-server.ts)
  *
  * Boots a plain node:http server that mounts ONLY createRelayHandler and
- * drives the `POST /_dsh/zen-remote/relay/v1/stream` protocol with real
+ * drives the `POST /_dsh/aug-remote/relay/v1/stream` protocol with real
  * requests: NDJSON frames, ping heartbeats, the end/error tails, share-change
  * synchronization against a REAL createShareStore, the per-device stream
  * budget, and viewer counts. The gateway's `stream` half is a controllable
@@ -18,15 +18,15 @@ const path = require('node:path')
 const { createRelayHandler, loadServerId } = require('../lib/relay-server.js')
 const { createShareStore } = require('../lib/share-store.js')
 
-const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-relay-stream-'))
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-relay-stream-'))
 process.on('exit', () => { try { fs.rmSync(ROOT, { recursive: true, force: true }) } catch { /* best effort */ } })
 
 const SECRET = 'f1e2d3c4'.repeat(8)
 const AUTH = {
-  'x-zen-remote-secret': SECRET,
-  'x-zen-remote-via': 'gateway',
-  'x-zen-remote-role': 'desktop-client',
-  'x-zen-remote-device': 'device-1',
+  'x-aug-remote-secret': SECRET,
+  'x-aug-remote-via': 'gateway',
+  'x-aug-remote-role': 'desktop-client',
+  'x-aug-remote-device': 'device-1',
 }
 
 /** The error the real gateway surfaces when a stream's signal aborts —
@@ -215,7 +215,7 @@ function openStream(server, body, headers = AUTH) {
   return new Promise((resolve, reject) => {
     const req = http.request({
       host: '127.0.0.1', port: server.port, method: 'POST',
-      path: '/_dsh/zen-remote/relay/v1/stream',
+      path: '/_dsh/aug-remote/relay/v1/stream',
       // Connection: close — agent:false still means a keep-alive socket on
       // modern Node, and a socket pool nobody drains would pin the test
       // process after the assertions are done.
@@ -303,7 +303,7 @@ test('stream: an unshared session is a 403 not-shared and never opens the gatewa
   const parts = makeParts('follow-unshared')
   const server = await startServer(parts.handler)
   try {
-    const res = await server.fetch('/_dsh/zen-remote/relay/v1/stream', post('/s', { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-secret' } } } }, AUTH))
+    const res = await server.fetch('/_dsh/aug-remote/relay/v1/stream', post('/s', { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-secret' } } } }, AUTH))
     assert.equal(res.status, 403)
     assert.deepEqual(await res.json(), { ok: false, error: { code: 'not-shared' } })
     assert.equal(parts.streams.length, 0)
@@ -319,11 +319,11 @@ test('stream: non-stream and unregistered methods are 403 forbidden-method, malf
       { namespace: 'session', method: 'list', args: { _request: {} } },
       { namespace: 'settings', method: 'update', args: {} },
     ]) {
-      const res = await server.fetch('/_dsh/zen-remote/relay/v1/stream', post('/s', body, AUTH))
+      const res = await server.fetch('/_dsh/aug-remote/relay/v1/stream', post('/s', body, AUTH))
       assert.equal(res.status, 403, `${body.namespace}/${body.method}`)
       assert.deepEqual(await res.json(), { ok: false, error: { code: 'forbidden-method' } })
     }
-    const bad = await server.fetch('/_dsh/zen-remote/relay/v1/stream', { method: 'POST', headers: AUTH, body: '[1]' })
+    const bad = await server.fetch('/_dsh/aug-remote/relay/v1/stream', { method: 'POST', headers: AUTH, body: '[1]' })
     assert.equal(bad.status, 400)
     assert.deepEqual(await bad.json(), { ok: false, error: { code: 'bad-request' } })
     assert.equal(parts.streams.length, 0)
@@ -552,7 +552,7 @@ test('invoke: session/list results keep only shared sessions, other fields ride 
   })
   const server = await startServer(parts.handler)
   try {
-    const res = await server.fetch('/_dsh/zen-remote/relay/v1/invoke', post('/i', { namespace: 'session', method: 'list', args: { _request: {} } }, AUTH))
+    const res = await server.fetch('/_dsh/aug-remote/relay/v1/invoke', post('/i', { namespace: 'session', method: 'list', args: { _request: {} } }, AUTH))
     assert.equal(res.status, 200)
     const body = await res.json()
     assert.equal(body.ok, true)
@@ -582,7 +582,7 @@ test('stream: more than 32 concurrent streams for one device get 429 too-many-st
     assert.equal(parts.streams.length, 32, 'no 33rd gateway stream was opened')
 
     // Another device has its own budget.
-    const other = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-a' } } } }, { ...AUTH, 'x-zen-remote-device': 'device-2' })
+    const other = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-a' } } } }, { ...AUTH, 'x-aug-remote-device': 'device-2' })
     assert.equal(other.status, 200)
     opens.push(other)
   } finally {
@@ -601,7 +601,7 @@ test('viewerCount: session-scoped streams count and uncount, global streams neve
   try {
     assert.equal(parts.handler.viewerCount('session-a'), 0)
     const first = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-a' } } } })
-    const second = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-a' } } } }, { ...AUTH, 'x-zen-remote-device': 'device-2' })
+    const second = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-a' } } } }, { ...AUTH, 'x-aug-remote-device': 'device-2' })
     opens.push(first, second)
     await waitFor(() => parts.handler.viewerCount('session-a') === 2)
 
@@ -658,7 +658,7 @@ test('stream: job/follow with a foreign job is 403 forbidden, an owned job strea
   }
   const server = await startServer(parts.handler)
   try {
-    const foreign = await server.fetch('/_dsh/zen-remote/relay/v1/stream', post('/s', { namespace: 'job', method: 'follow', args: { request: { sessionId: 'session-a', jobId: 'job-elsewhere' } } }, AUTH))
+    const foreign = await server.fetch('/_dsh/aug-remote/relay/v1/stream', post('/s', { namespace: 'job', method: 'follow', args: { request: { sessionId: 'session-a', jobId: 'job-elsewhere' } } }, AUTH))
     assert.equal(foreign.status, 403, 'a job the list does not mention is refused, not guessed')
     assert.deepEqual(await foreign.json(), { ok: false, error: { code: 'forbidden' } })
 
@@ -685,7 +685,7 @@ test('stream: a job/list relay stream feeds the ownership cache for later kills'
     gate.push({ type: 'rows', jobs: [JOB('job-live', 'session-a')] })
     await waitFor(() => list.lines.length >= 1)
 
-    const kill = await server.fetch('/_dsh/zen-remote/relay/v1/invoke', post('/i', { namespace: 'job', method: 'kill', args: { request: { sessionId: 'session-a', jobId: 'job-live' } } }, AUTH))
+    const kill = await server.fetch('/_dsh/aug-remote/relay/v1/invoke', post('/i', { namespace: 'job', method: 'kill', args: { request: { sessionId: 'session-a', jobId: 'job-live' } } }, AUTH))
     assert.equal(kill.status, 200, 'the kill is answered from the recent rows, no probe needed')
     assert.deepEqual(await kill.json(), { ok: true, value: { killed: true } })
     assert.equal(parts.streams.length, 1, 'the cache hit opened no probe stream')
@@ -699,7 +699,7 @@ test('stream: a job/list relay stream feeds the ownership cache for later kills'
       }
       return makeGate(call).iterable
     }
-    const refused = await server.fetch('/_dsh/zen-remote/relay/v1/invoke', post('/i', { namespace: 'job', method: 'kill', args: { request: { sessionId: 'session-a', jobId: 'job-ghost' } } }, AUTH))
+    const refused = await server.fetch('/_dsh/aug-remote/relay/v1/invoke', post('/i', { namespace: 'job', method: 'kill', args: { request: { sessionId: 'session-a', jobId: 'job-ghost' } } }, AUTH))
     assert.equal(refused.status, 403, 'unknown ownership is a refusal, never a guess')
     assert.equal(probes, 1)
 
@@ -783,7 +783,7 @@ test('race: an unshare during the ownership probe refuses job/kill before forwar
   })
   const server = await startServer(parts.handler)
   try {
-    const killPromise = server.fetch('/_dsh/zen-remote/relay/v1/invoke', post('/i', { namespace: 'job', method: 'kill', args: { request: { sessionId: 'S', jobId: 'j1' } } }, AUTH))
+    const killPromise = server.fetch('/_dsh/aug-remote/relay/v1/invoke', post('/i', { namespace: 'job', method: 'kill', args: { request: { sessionId: 'S', jobId: 'j1' } } }, AUTH))
     await waitFor(() => parts.streams.length === 1, 'the ownership probe is in flight')
     parts.store.unshare('S', 'manual')
     releaseProbe()
@@ -803,7 +803,7 @@ test('closeAll: every open stream gets the server-restart line, upstreams abort,
   const opens = []
   try {
     const first = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'S-a' } } } })
-    const second = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'S-b' } } } }, { ...AUTH, 'x-zen-remote-device': 'device-2' })
+    const second = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'S-b' } } } }, { ...AUTH, 'x-aug-remote-device': 'device-2' })
     opens.push(first, second)
     await waitFor(() => parts.streams.length === 2 && parts.handler.viewerCount('S-a') === 1 && parts.handler.viewerCount('S-b') === 1)
 
@@ -857,7 +857,7 @@ test('ownership cache: a session that left and rejoined the table starts from an
       }
       return makeGate(call).iterable
     }
-    const kill = await server.fetch('/_dsh/zen-remote/relay/v1/invoke', post('/i', { namespace: 'job', method: 'kill', args: { request: { sessionId: 'S', jobId: 'job-live' } } }, AUTH))
+    const kill = await server.fetch('/_dsh/aug-remote/relay/v1/invoke', post('/i', { namespace: 'job', method: 'kill', args: { request: { sessionId: 'S', jobId: 'job-live' } } }, AUTH))
     assert.equal(kill.status, 403, 'the stale cache entry is gone — the fresh probe refuses')
     assert.equal(probes, 1, 'the answer came from a probe, not the stale cache')
   } finally { await server.stop() }
@@ -1092,7 +1092,7 @@ test('T34: the unshared error line carries reason client (closed from the deskto
   try {
     const open = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-a' } } } })
     await waitFor(() => parts.streams.length === 1)
-    const close = await server.fetch('/_dsh/zen-remote/relay/v1/unshare', post('/u', { sessionId: 'session-a' }, AUTH))
+    const close = await server.fetch('/_dsh/aug-remote/relay/v1/unshare', post('/u', { sessionId: 'session-a' }, AUTH))
     assert.equal(close.status, 200)
     await open.done
     const errorLine = open.lines[open.lines.length - 1]
@@ -1177,7 +1177,7 @@ test('T34: the pre-open gate (no event observed) degrades to reason manual', asy
 // ---- T32 (+T32-fix): the $zr/events forwarding subscription + event-result -------------
 
 const EVENTS_BODY = { namespace: '$zr', method: 'events', args: {} }
-const postEvent = (body, device) => post('/e', body, device === undefined ? AUTH : { ...AUTH, 'x-zen-remote-device': device })
+const postEvent = (body, device) => post('/e', body, device === undefined ? AUTH : { ...AUTH, 'x-aug-remote-device': device })
 
 /** The token-bearing eventId a forwarded line carries: `<hex token>.<original>`. */
 const forwardedIds = (open) => open.lines
@@ -1261,11 +1261,11 @@ test('T32-fix: event-result resolves the subscription by token, the entry by reg
   try {
     // Before anything was forwarded, an answer is unknown — even one in the
     // old global-id shape (no token at all).
-    const early = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: 'evt-1', result: { kind: 'next' } }))
+    const early = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: 'evt-1', result: { kind: 'next' } }))
     assert.equal(early.status, 403)
     assert.deepEqual(await early.json(), { ok: false, error: { code: 'unknown-event' } })
     // A malformed body is a 400 before any ownership question.
-    const bad = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: 'evt-1' }))
+    const bad = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: 'evt-1' }))
     assert.equal(bad.status, 400)
     assert.deepEqual(await bad.json(), { ok: false, error: { code: 'bad-request' } })
 
@@ -1275,7 +1275,7 @@ test('T32-fix: event-result resolves the subscription by token, the entry by reg
     await waitFor(() => forwardedIds(open).length >= 1)
     const tokenEventId = forwardedIds(open)[0]
 
-    const answer = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result', value: 'allowed-once' } }))
+    const answer = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result', value: 'allowed-once' } }))
     assert.equal(answer.status, 200)
     assert.deepEqual(await answer.json(), { ok: true })
     assert.equal(parts.eventResults.length, 1)
@@ -1290,7 +1290,7 @@ test('T32-fix: event-result resolves the subscription by token, the entry by reg
 
     // The gateway's own envelope — including failures — rides back untouched.
     parts.gateway.dispatchRpc = async () => ({ ok: false, error: { code: 'gateway/internal', message: 'api gateway: invalid Remote event result', details: {} } })
-    const refused = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'nonsense' } }))
+    const refused = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'nonsense' } }))
     assert.equal(refused.status, 200)
     assert.deepEqual(await refused.json(), { ok: false, error: { code: 'gateway/internal', message: 'api gateway: invalid Remote event result', details: {} } })
     delete parts.gateway.dispatchRpc
@@ -1300,13 +1300,13 @@ test('T32-fix: event-result resolves the subscription by token, the entry by reg
     // that into the same silent ok DSH gives a stale result.
     parts.eventsGate().push({ type: 'cancel', eventId: 'evt-1' })
     await waitFor(() => cancelIds(open).length >= 1)
-    const late = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result' } }))
+    const late = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result' } }))
     assert.equal(late.status, 403)
     assert.deepEqual(await late.json(), { ok: false, error: { code: 'unknown-event' } })
 
     parts.eventsGate().finish()
     await open.done
-    const after = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'next' } }))
+    const after = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'next' } }))
     assert.equal(after.status, 403)
     assert.deepEqual(await after.json(), { ok: false, error: { code: 'unknown-event' } })
   } finally { await server.stop() }
@@ -1324,13 +1324,13 @@ test('T32-fix: a foreign device cannot answer another device\'s subscription', a
 
     // Device B knows a token (say it guessed or sniffed one) — refused
     // before the registry is even read, indistinguishable from unknown.
-    const foreign = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result', value: 'allowed-once' } }, 'device-2'))
+    const foreign = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result', value: 'allowed-once' } }, 'device-2'))
     assert.equal(foreign.status, 403)
     assert.deepEqual(await foreign.json(), { ok: false, error: { code: 'unknown-event' } })
     assert.equal(parts.eventResults.length, 0, 'the foreign answer never reached the gateway')
 
     // The owning device answers fine.
-    const own = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result', value: 'allowed-once' } }, 'device-1'))
+    const own = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result', value: 'allowed-once' } }, 'device-1'))
     assert.equal(own.status, 200)
     assert.deepEqual(await own.json(), { ok: true })
     assert.deepEqual(parts.eventResults[0].payload.args.eventId, 'evt-1')
@@ -1361,7 +1361,7 @@ test('T32-fix2: two subscriptions on one device answer only through their own to
     // The answer naming subscription B's token composes the gateway
     // payload with B's clientId — never A's, though both forwarded the
     // same original id on the same device.
-    const answerB = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenBId, result: { kind: 'result', value: 'allowed-once' } }))
+    const answerB = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenBId, result: { kind: 'result', value: 'allowed-once' } }))
     assert.equal(answerB.status, 200)
     assert.deepEqual(await answerB.json(), { ok: true })
     assert.equal(parts.eventResults.length, 1)
@@ -1370,7 +1370,7 @@ test('T32-fix2: two subscriptions on one device answer only through their own to
     })
 
     // A token nobody minted refuses even with a correct original id.
-    const ghost = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: 'deadbeefdeadbeef.evt-1', result: { kind: 'next' } }))
+    const ghost = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: 'deadbeefdeadbeef.evt-1', result: { kind: 'next' } }))
     assert.equal(ghost.status, 403)
     assert.deepEqual(await ghost.json(), { ok: false, error: { code: 'unknown-event' } })
     assert.equal(parts.eventResults.length, 1, 'the ghost answer never reached the gateway')
@@ -1398,7 +1398,7 @@ test('T32-fix2: a closed subscription leaves no answerable registry behind', asy
     await open.done
     // A tick for the pump's teardown to run after the socket close.
     await new Promise((resolve) => setTimeout(resolve, 50))
-    const late = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result', value: 'allowed-once' } }))
+    const late = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'result', value: 'allowed-once' } }))
     assert.equal(late.status, 403)
     assert.deepEqual(await late.json(), { ok: false, error: { code: 'unknown-event' } })
     assert.equal(parts.eventResults.length, 0, 'nothing was composed for a dead subscription')
@@ -1425,7 +1425,7 @@ test('T32-fix: unsharing mid-event synthesizes the cancel and closes the answer,
     await new Promise((resolve) => setTimeout(resolve, 50))
     assert.equal(parts.eventResults.length, 0, 'the synthesized cancel does not abstain on behalf')
     // And the answer is closed — the entry went with the synthesized cancel.
-    const refused = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'next' } }))
+    const refused = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'next' } }))
     assert.equal(refused.status, 403)
     assert.deepEqual(await refused.json(), { ok: false, error: { code: 'unknown-event' } })
 
@@ -1435,7 +1435,7 @@ test('T32-fix: unsharing mid-event synthesizes the cancel and closes the answer,
     parts.store.share('S-shared')
     await new Promise((resolve) => setTimeout(resolve, 50))
     assert.equal(cancelIds(open).length, 1)
-    const stillRefused = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'next' } }))
+    const stillRefused = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'next' } }))
     assert.equal(stillRefused.status, 403)
 
     parts.eventsGate().finish()
@@ -1459,7 +1459,7 @@ test('T32-fix: the per-subscription registry caps at 500 and drops the oldest', 
     gate.push({ type: 'cancel', eventId: 'evt-0' })
     await new Promise((resolve) => setTimeout(resolve, 50))
     assert.equal(cancelIds(open).length, 0)
-    const ghost = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: `${forwardedIds(open)[0].split('.')[0]}.evt-0`, result: { kind: 'next' } }))
+    const ghost = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: `${forwardedIds(open)[0].split('.')[0]}.evt-0`, result: { kind: 'next' } }))
     assert.equal(ghost.status, 403)
 
     // The newest event is still owned: its cancel travels.
@@ -1496,7 +1496,7 @@ test('T32-fix: closeAll empties the event registries at once, even when the pump
     await open.done
     // The refusal must be immediate — not gated on the stream's own
     // teardown unwinding (here it never will).
-    const refused = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'next' } }))
+    const refused = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: tokenEventId, result: { kind: 'next' } }))
     assert.equal(refused.status, 403)
     assert.deepEqual(await refused.json(), { ok: false, error: { code: 'unknown-event' } })
     assert.equal(parts.eventResults.length, 0, 'nothing was composed for a dead handler')
@@ -1526,7 +1526,7 @@ test('T32-fix: a composition without the event surfaces degrades honestly', asyn
     await waitFor(() => open.lines.length >= 1)
     parts2.eventsGate().push({ type: 'waterfall', event: 'approval/request', eventId: 'evt-1', agentId: 'S-shared', request: {} })
     await waitFor(() => forwardedIds(open).length >= 1)
-    const res = await server2.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: forwardedIds(open)[0], result: { kind: 'next' } }))
+    const res = await server2.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: forwardedIds(open)[0], result: { kind: 'next' } }))
     assert.equal(res.status, 200)
     assert.deepEqual(await res.json(), {
       ok: false,
@@ -1545,7 +1545,7 @@ test('T59 stream: pings carry the server name and the device name, both as of NO
   try {
     // The gateway stamps the CURRENT table name on every forward; here the
     // header stands in for it.
-    const open = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-a' } } } }, { ...AUTH, 'x-zen-remote-device-name': encodeURIComponent('书房的台式机') })
+    const open = await openStream(server, { namespace: 'session', method: 'follow', args: { request: { address: { kind: 'session', sessionId: 'session-a' } } } }, { ...AUTH, 'x-aug-remote-device-name': encodeURIComponent('书房的台式机') })
     assert.equal(open.status, 200)
     await waitFor(() => open.lines.some((line) => line.type === 'ping'))
     let ping = open.lines.find((line) => line.type === 'ping')
@@ -1555,9 +1555,9 @@ test('T59 stream: pings carry the server name and the device name, both as of NO
     // A later request from the SAME device with a NEW name (the gateway
     // stamps the fresh table name per forward) teaches the cache; the next
     // ping of the STILL-OPEN stream carries it — no reconnect involved.
-    const renamed = await server.fetch('/_dsh/zen-remote/relay/v1/handshake', {
+    const renamed = await server.fetch('/_dsh/aug-remote/relay/v1/handshake', {
       method: 'POST',
-      headers: { ...AUTH, 'x-zen-remote-device-name': encodeURIComponent('改名后的台式机'), 'content-type': 'application/json' },
+      headers: { ...AUTH, 'x-aug-remote-device-name': encodeURIComponent('改名后的台式机'), 'content-type': 'application/json' },
       body: '{}',
     })
     assert.equal(renamed.status, 200)
@@ -1606,7 +1606,7 @@ test('alpha.3: $events opens and $events/result answers as the SAME owner/answer
     assert.equal(parts.wireOpens[0].peer, peer, '$events opened as the owner Peer')
     parts.eventsGate().push({ type: 'waterfall', event: 'approval/request', eventId: 'evt-1', agentId: 'S-shared', request: {} })
     await waitFor(() => forwardedIds(open).length >= 1)
-    const answer = await server.fetch('/_dsh/zen-remote/relay/v1/event-result', postEvent({ eventId: forwardedIds(open)[0], result: { kind: 'result', value: 'allowed-once' } }))
+    const answer = await server.fetch('/_dsh/aug-remote/relay/v1/event-result', postEvent({ eventId: forwardedIds(open)[0], result: { kind: 'result', value: 'allowed-once' } }))
     assert.equal(answer.status, 200)
     assert.equal(parts.eventResults[0].endpoint, '$events/result')
     assert.equal(parts.eventResults[0].peer, peer, '$events/result answered by the Peer that opened the stream')

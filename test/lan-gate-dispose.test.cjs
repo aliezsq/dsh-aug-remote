@@ -1,4 +1,4 @@
-/* dsh-zen-remote · gateway entry disposal (lan-gate.mjs)
+/* dsh-aug-remote · gateway entry disposal (lan-gate.mjs)
  *
  * The T11 review found an orphan-process window: start() awaits
  * ctx.subprocess.resolveExecutable('node'), and if the plugin row is torn
@@ -22,7 +22,7 @@ const path = require('node:path')
 // <DSH_HOME>/lan-gate.config.json), so this file needs a hermetic home or a
 // developer's real config file would flip these expectations machine-by-
 // machine. Same isolation role-wiring.test.cjs uses.
-const TEMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-lan-gate-dispose-'))
+const TEMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-lan-gate-dispose-'))
 process.env.DSH_HOME = TEMP_HOME
 process.on('exit', () => { try { fs.rmSync(TEMP_HOME, { recursive: true, force: true }) } catch { /* best effort */ } })
 

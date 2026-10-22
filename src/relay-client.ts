@@ -54,22 +54,22 @@ import type { ServerPluginEntry } from './plugin-bridge.js'
 /** The one protocol version this client speaks; the handshake verifies it. */
 const RELAY_PROTOCOL = 1
 
-const HANDSHAKE_PATH = '/_dsh/zen-remote/relay/v1/handshake'
-const INVOKE_PATH = '/_dsh/zen-remote/relay/v1/invoke'
-const STREAM_PATH = '/_dsh/zen-remote/relay/v1/stream'
-const UNSHARE_PATH = '/_dsh/zen-remote/relay/v1/unshare'
-const EVENT_RESULT_PATH = '/_dsh/zen-remote/relay/v1/event-result'
-const HTTP_PATH = '/_dsh/zen-remote/relay/v1/http'
-const UPLOAD_PATH = '/_dsh/zen-remote/relay/v1/upload'
+const HANDSHAKE_PATH = '/_dsh/aug-remote/relay/v1/handshake'
+const INVOKE_PATH = '/_dsh/aug-remote/relay/v1/invoke'
+const STREAM_PATH = '/_dsh/aug-remote/relay/v1/stream'
+const UNSHARE_PATH = '/_dsh/aug-remote/relay/v1/unshare'
+const EVENT_RESULT_PATH = '/_dsh/aug-remote/relay/v1/event-result'
+const HTTP_PATH = '/_dsh/aug-remote/relay/v1/http'
+const UPLOAD_PATH = '/_dsh/aug-remote/relay/v1/upload'
 /** The visible-path upload (2.3.0): materializes a prompt's client-local file
  * on the host and returns its absolute path. */
-const PROMPT_ATTACHMENT_PATH = '/_dsh/zen-remote/relay/v1/prompt-attachment'
-const PLUGIN_PATH = '/_dsh/zen-remote/relay/v1/plugin'
-const PLUGIN_TUNNEL_OPEN_PATH = '/_dsh/zen-remote/relay/v1/plugin-tunnel/open'
-const PLUGIN_TUNNEL_SEND_PATH = '/_dsh/zen-remote/relay/v1/plugin-tunnel/send'
-const PLUGIN_TUNNEL_CLOSE_PATH = '/_dsh/zen-remote/relay/v1/plugin-tunnel/close'
+const PROMPT_ATTACHMENT_PATH = '/_dsh/aug-remote/relay/v1/prompt-attachment'
+const PLUGIN_PATH = '/_dsh/aug-remote/relay/v1/plugin'
+const PLUGIN_TUNNEL_OPEN_PATH = '/_dsh/aug-remote/relay/v1/plugin-tunnel/open'
+const PLUGIN_TUNNEL_SEND_PATH = '/_dsh/aug-remote/relay/v1/plugin-tunnel/send'
+const PLUGIN_TUNNEL_CLOSE_PATH = '/_dsh/aug-remote/relay/v1/plugin-tunnel/close'
 /** T59: a desktop-client device renaming ITSELF in the gateway's table. */
-const DEVICE_NAME_PATH = '/_dsh/zen-remote/relay/v1/device/name'
+const DEVICE_NAME_PATH = '/_dsh/aug-remote/relay/v1/device/name'
 
 /** How long a stream may stay line-silent before it is judged dead. */
 const DEFAULT_IDLE_TIMEOUT_MS = 45_000
@@ -376,7 +376,7 @@ export interface RelayClient {
    * x-zr-* headers (PB-3's protocol), no body. Resolves with the UNREAD
    * fetch Response the moment the headers arrive — the caller streams the
    * body itself — and EVERY HTTP status is carried verbatim (a refusal's
-   * `x-zen-remote-error` header is the caller's classifier, never an
+   * `x-aug-remote-error` header is the caller's classifier, never an
    * exception here). The header wait gets the plain request timeout; the
    * BODY carries no deadline of our own (a stream takes as long as it
    * takes) — the caller's signal aborts it. Transport deaths judge the
@@ -390,7 +390,7 @@ export interface RelayClient {
    * raw bytes (each `data` line decoded) and ENDS when the server writes
    * the `end` line (upstream closed or errored). A refusal (any non-200 or
    * a missing open line) throws RelayError with the wire's
-   * `x-zen-remote-error` code. */
+   * `x-aug-remote-error` code. */
   pluginTunnelOpen(
     request: RelayPluginRequest & {
       wsHeaders: { 'sec-websocket-key': string; 'sec-websocket-version': string; 'sec-websocket-protocol'?: string; 'sec-websocket-extensions'?: string }
@@ -1588,7 +1588,7 @@ export function createRelayClient(options: CreateRelayClientOptions): RelayClien
         setState('offline')
         throw new RelayError('offline', messageOf(error))
       }
-      // Headers are here: every status — bridged answer or x-zen-remote-error
+      // Headers are here: every status — bridged answer or x-aug-remote-error
       // refusal — travels to the caller verbatim, body untouched.
       return response
     } finally {
@@ -1640,7 +1640,7 @@ export function createRelayClient(options: CreateRelayClientOptions): RelayClien
     if (response.status < 200 || response.status >= 300 || response.body === null) {
       // The refusal carries its code in the marker header (every
       // plugin-bridge wall does) — surface it verbatim.
-      const code = response.headers.get('x-zen-remote-error') ?? `http-${response.status}`
+      const code = response.headers.get('x-aug-remote-error') ?? `http-${response.status}`
       const bodyText = await response.text().catch(() => '')
       throw new RelayError(code, bodyText === '' ? code : bodyText, response.status)
     }
@@ -1682,7 +1682,7 @@ export function createRelayClient(options: CreateRelayClientOptions): RelayClien
       }
     }
     if (tunnelId === undefined) {
-      const code = response.headers.get('x-zen-remote-error') ?? 'internal'
+      const code = response.headers.get('x-aug-remote-error') ?? 'internal'
       throw new RelayError(code, `the tunnel open stream never named a tunnel`, response.status)
     }
     const frames: AsyncIterable<Uint8Array> = {

@@ -18,7 +18,7 @@
  * shape as startSweeper in src/activity.ts).
  */
 
-import type { ZenRemoteConfig } from './config.js'
+import type { AugRemoteConfig } from './config.js'
 import { RESTART_FIELDS } from './restart-fields.js'
 
 export { RESTART_FIELDS } from './restart-fields.js'
@@ -32,7 +32,7 @@ export type { RestartField } from './restart-fields.js'
  * type satisfies it structurally) because tests feed partial objects; a
  * missing field and an undefined one are the same "not set".
  */
-export function restartKey(values: { [K in keyof ZenRemoteConfig]?: unknown }): string {
+export function restartKey(values: { [K in keyof AugRemoteConfig]?: unknown }): string {
   const picked: Record<string, unknown> = {}
   for (const field of [...RESTART_FIELDS].sort()) picked[field] = values[field]
   return JSON.stringify(picked)
@@ -48,7 +48,7 @@ export interface RestartWatcherOptions {
    * (the baseline) and once per trigger. A throw is swallowed and retried on
    * the next trigger — the watcher must survive a transient resolution
    * failure. */
-  getValues: () => ZenRemoteConfig
+  getValues: () => AugRemoteConfig
   /** Called at most once, when the fingerprint diverges from the baseline.
    * After the call the watcher is done: it clears its own timer, so a slow
    * or failing reload can never trigger a second one (the reload itself

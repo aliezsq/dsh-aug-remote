@@ -13,7 +13,7 @@
  * original route untouched.
  *
  * The un-bridged refusals answer a UNIFORM 503 shape (header
- * `x-zen-remote: unbridged`, JSON body naming the reason) — and, decisive
+ * `x-aug-remote: unbridged`, JSON body naming the reason) — and, decisive
  * for the security posture, they answer WITHOUT the local plugin handler
  * ever running: a remote session must never execute a plugin route against
  * local state, not even when the bridge is down (docs/adr/0001).
@@ -99,7 +99,7 @@ export interface PluginRouteInterceptDiagnostics {
 export interface InstallPluginRouteInterceptOptions {
   /** The RAW webServer instance (`ctx.webServer[symbols.original]`). */
   webServer: object
-  /** The local declaration registry (the `zenRemote` service's table). */
+  /** The local declaration registry (the `augRemote` service's table). */
   registry: BridgeRegistry
   /** The client relay client; `pluginRequest` is the forwarding door. */
   relay: RelayClient
@@ -208,7 +208,7 @@ export function installPluginRouteIntercept(options: InstallPluginRouteIntercept
     try {
       socket.write(
         `HTTP/1.1 503 Service Unavailable\r\n` +
-          `x-zen-remote: unbridged\r\n` +
+          `x-aug-remote: unbridged\r\n` +
           `content-type: application/json; charset=utf-8\r\n` +
           `content-length: ${body.length}\r\n` +
           `connection: close\r\n` +
@@ -232,7 +232,7 @@ export function installPluginRouteIntercept(options: InstallPluginRouteIntercept
   const answerUnbridged = (res: ServerResponse, plugin: string, reason: string): void => {
     recordRefusal(plugin, reason)
     log?.('plugin route refused for %s: %s', plugin, reason)
-    res.setHeader('x-zen-remote', 'unbridged')
+    res.setHeader('x-aug-remote', 'unbridged')
     res.setHeader('content-type', 'application/json; charset=utf-8')
     res.writeHead(503)
     res.end(JSON.stringify({ ok: false, error: { code: 'zr-plugin-unbridged', reason, plugin } }))
@@ -422,7 +422,7 @@ export function installPluginRouteIntercept(options: InstallPluginRouteIntercept
         // A relay-side refusal travels its OWN marker header (PB-3); the
         // browser sees the uniform unbridged shape with that code as the
         // reason. The relay's JSON body is disposed unread.
-        const refusal = response.headers.get('x-zen-remote-error')
+        const refusal = response.headers.get('x-aug-remote-error')
         if (refusal !== null) {
           await response.body?.cancel().catch(() => {})
           answerUnbridged(res, declared.plugin, refusal)
@@ -740,7 +740,7 @@ export function installPluginRouteIntercept(options: InstallPluginRouteIntercept
           },
           controller.signal,
         )
-        const refusal = response.headers.get('x-zen-remote-error')
+        const refusal = response.headers.get('x-aug-remote-error')
         if (refusal !== null) {
           await response.body?.cancel().catch(() => {})
           answerUnbridged(res, plugin, refusal)

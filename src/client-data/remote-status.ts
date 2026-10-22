@@ -6,7 +6,7 @@
  * with a fake fetch.
  *
  * - `parseRemoteStatusBody(body, now)` maps the
- *   `GET /_dsh/zen-remote/client/remote-status` body
+ *   `GET /_dsh/aug-remote/client/remote-status` body
  *   (`{ state, versionMismatch, serverName, closed }`) into a tolerant view;
  * - `describeRemoteStatus(view)` maps one view to the icon's three states —
  *   online (lit) / offline (grey; `revoked` / `unpaired` count as offline —
@@ -34,10 +34,10 @@ import { zh } from '../client/locales.ts'
 
 /** Same-origin client route feeding this store (host half: T34,
  * src/client-routes.ts). */
-export const REMOTE_STATUS_ROUTE = '/_dsh/zen-remote/client/remote-status'
+export const REMOTE_STATUS_ROUTE = '/_dsh/aug-remote/client/remote-status'
 
 /** Same-origin client route closing one remote session from this machine. */
-export const CLIENT_UNSHARE_ROUTE = '/_dsh/zen-remote/client/unshare'
+export const CLIENT_UNSHARE_ROUTE = '/_dsh/aug-remote/client/unshare'
 
 /** The relay's serving state, as the route words it. */
 export type RemoteStatusState = 'online' | 'offline' | 'revoked' | 'unpaired'

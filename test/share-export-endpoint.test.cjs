@@ -1,4 +1,4 @@
-/* dsh-zen-remote · share-export route (src/share-export.ts)
+/* dsh-aug-remote · share-export route (src/share-export.ts)
  *
  * Integration style borrowed from scripts/check-upload-endpoint.mjs: the REAL
  * handler runs over a real node:http socket, with a fake sessionQuery service

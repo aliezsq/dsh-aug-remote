@@ -11,7 +11,7 @@
  *
  * Why the secret: the desktop client is a Node process on another machine —
  * it has no DSH login cookie, so the gateway authenticates it with a Bearer
- * pairing token and marks the forwarded request with `x-zen-remote-*` headers.
+ * pairing token and marks the forwarded request with `x-aug-remote-*` headers.
  * But DSH only listens on 127.0.0.1, where any local process could bypass the
  * gateway and forge those headers. The plugin therefore mints a per-apply
  * secret, hands it to the gateway child through `LAN_GATE_RELAY_SECRET`, the
@@ -20,7 +20,7 @@
  *
  * Path dispatch never decodes the request path. The gateway only admits relay
  * paths whose raw and URL-normalized forms are byte-identical, which lets
- * `/_dsh/zen-remote/relay/..%2f..%2fapi` through — decoding it here before
+ * `/_dsh/aug-remote/relay/..%2f..%2fapi` through — decoding it here before
  * matching would reopen the traversal the gateway just closed. Every route is
  * an exact comparison on `new URL(req.url).pathname` as-is; anything else is
  * a 404.
@@ -37,7 +37,7 @@ import type { NormalizedAdapter } from './plugin-adapter-core.js';
  * pathname.startsWith(p + '/')`, so a trailing slash here would match only
  * `…/relay//…` shapes and never `…/relay/ping`.
  */
-export declare const RELAY_PREFIX = "/_dsh/zen-remote/relay";
+export declare const RELAY_PREFIX = "/_dsh/aug-remote/relay";
 /**
  * Body ceiling for the binary upload channel alone (T51): a shared session's
  * non-image file attachments. DSH's own upload route has NO byte cap — the
@@ -191,7 +191,7 @@ export interface RelayHandlerOptions {
      * mounted it, old tests — and `POST relay/v1/plugin` answers 501
      * `unsupported`, exactly like the `/api` passthrough without a dispatcher. */
     pluginBridge?: {
-        /** THIS process's bridge declaration registry (the `zenRemote` service's
+        /** THIS process's bridge declaration registry (the `augRemote` service's
          * backing table) — the source of truth for "which plugin, which version,
          * which routes". */
         registry: BridgeRegistry;
@@ -254,7 +254,7 @@ export declare function resolveDshVersion(): string;
  * Every request passes the same gate first: gateway secret, then the two
  * marking headers. Failures answer a uniform 401 that does not say WHICH
  * check failed — the difference would only help someone probing the wall.
- * After the gate, `x-zen-remote-device` is the caller's device id (the
+ * After the gate, `x-aug-remote-device` is the caller's device id (the
  * per-device stream budget hangs off it).
  *
  * @param options - secret, share store, gateway service and server facts.

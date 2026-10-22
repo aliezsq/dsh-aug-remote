@@ -128,7 +128,7 @@ export declare const zh: {
     readonly 'settings.pushTestFail': "测试推送发送失败";
     readonly 'settings.pairingTitle': "配对";
     readonly 'settings.pairingWebGuide': "适用于手机、平板及各类浏览器。通过网关地址访问，可查看并操作服务端的全部会话。";
-    readonly 'settings.pairingDesktopGuide': "适用于已安装 DSH 桌面端、并启用 zen-remote 子客户端角色的计算机。配对后，服务端已开启远程连接的会话将显示在该计算机的侧边栏中，其余会话不可见。";
+    readonly 'settings.pairingDesktopGuide': "适用于已安装 DSH 桌面端、并启用 aug-remote 子客户端角色的计算机。配对后，服务端已开启远程连接的会话将显示在该计算机的侧边栏中，其余会话不可见。";
     readonly 'settings.pairingGenerate': "生成配对码";
     readonly 'settings.pairingGenerating': "生成中…";
     readonly 'settings.pairingCodeLabel': "配对码";
@@ -198,14 +198,14 @@ export declare const zh: {
     readonly 'settings.client.failLocked': "尝试次数过多，请 {minutes} 分钟后再试";
     readonly 'settings.client.failUnreachable': "无法连接服务端";
     readonly 'settings.client.failRoleMismatch': "该配对码不适用于桌面应用端";
-    readonly 'settings.client.failUnexpected': "服务端回应无法识别，请确认服务端已安装 dsh-zen-remote 2.0.0";
+    readonly 'settings.client.failUnexpected': "服务端回应无法识别，请确认服务端已安装 dsh-aug-remote 2.0.0";
     readonly 'settings.client.failWrite': "配对成功，但本机保存令牌失败：设置存储不可用或只读";
     readonly 'settings.client.statusTitle': "连接状态";
     readonly 'settings.client.statusUnpaired': "未配对";
     readonly 'settings.client.statusConnected': "已连接到 {serverUrl}";
     readonly 'settings.client.statusRevoked': "令牌已被吊销，请重新配对";
     readonly 'settings.client.statusUnreachable': "服务端当前不可达";
-    readonly 'settings.client.statusUnexpected': "服务端版本不支持远程会话（需要 dsh-zen-remote 2.0.0）";
+    readonly 'settings.client.statusUnexpected': "服务端版本不支持远程会话（需要 dsh-aug-remote 2.0.0）";
     readonly 'settings.client.statusInvalidUrl': "服务端地址无效或不安全，请重新配对";
     readonly 'settings.client.statusRefresh': "刷新";
     readonly 'settings.client.statusRefreshing': "刷新中…";
@@ -232,7 +232,7 @@ export declare const zh: {
     readonly 'settings.client.statusConnectedName': "已连接到「{serverName}」";
     readonly 'settings.client.statusOfflineRetry': "离线，将于 {seconds} 秒后重试";
     readonly 'settings.client.statusOfflineRetrySoon': "离线，即将重试…";
-    readonly 'settings.client.statusIncompatible': "与服务端中继协议不兼容，请升级两端的 dsh-zen-remote";
+    readonly 'settings.client.statusIncompatible': "与服务端中继协议不兼容，请升级两端的 dsh-aug-remote";
     readonly 'settings.client.diagTitle': "诊断";
     readonly 'settings.client.diagLastError': "最近错误码：{code}";
     readonly 'settings.client.diagInterceptInstalled': "请求拦截器已安装";
@@ -254,7 +254,7 @@ export declare const zh: {
     readonly 'settings.bridge.stateDeclarationMismatch': "声明不一致";
     readonly 'settings.bridge.stateConsentOff': "服务端主人未允许整机数据";
     readonly 'settings.bridge.stateOffline': "中继离线";
-    readonly 'settings.bridge.stateServerTooOld': "服务端 zen-remote 版本过旧";
+    readonly 'settings.bridge.stateServerTooOld': "服务端 aug-remote 版本过旧";
     readonly 'settings.bridge.interceptOff': "本机改道未启用：{reason}";
     readonly remoteStatusOnline: "远程会话 · 已连接";
     readonly remoteStatusOffline: "服务端离线，正在重连";

@@ -1,4 +1,4 @@
-/* dsh-zen-remote · lan-gate entry target-port test (T-017 / T-017-fix)
+/* dsh-aug-remote · lan-gate entry target-port test (T-017 / T-017-fix)
  * The gateway entry (lan-gate.mjs) decides which local port the child
  * gateway should forward to, resolved as:
  *     incoming config (already merged from env > row > file by src/config.ts)
@@ -28,7 +28,7 @@ const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
 
-const TEMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-lan-gate-port-'))
+const TEMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-lan-gate-port-'))
 process.env.DSH_HOME = TEMP_HOME
 process.on('exit', () => { try { fs.rmSync(TEMP_HOME, { recursive: true, force: true }) } catch { /* best effort */ } })
 

@@ -63,8 +63,8 @@ export interface AdminBridgeRowView {
     version: string;
     hasServerScope: boolean;
     consent: boolean;
-    /** True when zen-remote's own adapter stands in for this plugin (the
-     * row renders「由 zen-remote 适配」); a wiring that predates adapters
+    /** True when aug-remote's own adapter stands in for this plugin (the
+     * row renders「由 aug-remote 适配」); a wiring that predates adapters
      * never sets it. */
     adapted: boolean;
 }

@@ -1,4 +1,4 @@
-// dsh-zen-remote · dsh-push.mjs — mobile push host plugin (OPTIONAL)
+// dsh-aug-remote · dsh-push.mjs — mobile push host plugin (OPTIONAL)
 //
 // Two-legged notification policy (docs/push-policy.md):
 //
@@ -28,7 +28,7 @@
 //     excluded) or the pending question. The payload is aes128gcm-encrypted
 //     end-to-end, so the push service (FCM/APNs/Mozilla) only ever sees
 //     ciphertext — the remaining exposure is your own lock screen.
-export const name = 'dsh-zen-remote-push'
+export const name = 'dsh-aug-remote-push'
 export const inject = []
 
 import { defineTool } from '@deepseek-ai/dsh-tools'
@@ -296,7 +296,7 @@ const PUSH_TOOL_GLOBAL_MAX = 20
 // enabled flag and the gateway port arrive from apply()'s resolved config.
 function registerPushTool(ctx, gate, pushToolEnabled, gatewayPort) {
   if (!pushToolEnabled) {
-    console.log('[dsh-zen-remote-push] push_notify disabled (DSH_PUSH_TOOL=0 / pushTool:false)')
+    console.log('[dsh-aug-remote-push] push_notify disabled (DSH_PUSH_TOOL=0 / pushTool:false)')
     return
   }
   // ctx.inject, NOT ctx.get: the tools service may be provided by a plugin
@@ -312,17 +312,17 @@ function registerPushTool(ctx, gate, pushToolEnabled, gatewayPort) {
   ctx.inject(['systemPrompt'], (promptCtx) => {
     if (!promptCtx.systemPrompt) return
     try {
-      promptCtx.systemPrompt.section({ name: 'dsh-zen-remote-push', order: 150, text: PUSH_NOTIFY_SECTION })
-      console.log('[dsh-zen-remote-push] notification guidance added to the system prompt')
+      promptCtx.systemPrompt.section({ name: 'dsh-aug-remote-push', order: 150, text: PUSH_NOTIFY_SECTION })
+      console.log('[dsh-aug-remote-push] notification guidance added to the system prompt')
     } catch (e) {
-      console.warn(`[dsh-zen-remote-push] cannot register prompt section: ${String(e && e.message || e)}`)
+      console.warn(`[dsh-aug-remote-push] cannot register prompt section: ${String(e && e.message || e)}`)
     }
   })
 }
 
 function registerPushToolWith(ctx, tools, gate, gatewayPort) {
   if (!tools) {
-    console.log('[dsh-zen-remote-push] "tools" service not present — push_notify not registered')
+    console.log('[dsh-aug-remote-push] "tools" service not present — push_notify not registered')
     return
   }
 
@@ -394,12 +394,12 @@ function registerPushToolWith(ctx, tools, gate, gatewayPort) {
         const result = await sendPush(args.title, args.body, gatewayPort)
         return { delivered: (result && typeof result.sent === 'number') ? result.sent : 0 }
       } catch (e) {
-        console.warn(`[dsh-zen-remote-push] push_notify send failed: ${String(e && e.message || e)}`)
+        console.warn(`[dsh-aug-remote-push] push_notify send failed: ${String(e && e.message || e)}`)
         return { delivered: 0 }
       }
     }
   })))
-  console.log('[dsh-zen-remote-push] push_notify tool registered')
+  console.log('[dsh-aug-remote-push] push_notify tool registered')
 }
 
 // ---------------------------------------------------------------------------
@@ -464,7 +464,7 @@ export function apply(ctx, config) {
     try {
       ctx.on(event, onTurnEnd)
     } catch (e) {
-      console.warn(`[dsh-zen-remote-push] cannot listen on "${event}": ${String(e && e.message || e)}`)
+      console.warn(`[dsh-aug-remote-push] cannot listen on "${event}": ${String(e && e.message || e)}`)
     }
   }
 
@@ -493,10 +493,10 @@ export function apply(ctx, config) {
       }
     })
   } catch (e) {
-    console.warn(`[dsh-zen-remote-push] cannot listen on "session/event": ${String(e && e.message || e)}`)
+    console.warn(`[dsh-aug-remote-push] cannot listen on "session/event": ${String(e && e.message || e)}`)
   }
 
-  console.log(`[dsh-zen-remote-push] approval/question notifications on (approval grace ${graceMs}ms); turn-end (${events.join(', ')}) ${cfg.turnEndEnabled ? 'on' : 'off — set DSH_PUSH_TURN_END=1 to enable'}`)
+  console.log(`[dsh-aug-remote-push] approval/question notifications on (approval grace ${graceMs}ms); turn-end (${events.join(', ')}) ${cfg.turnEndEnabled ? 'on' : 'off — set DSH_PUSH_TURN_END=1 to enable'}`)
 
   registerPushTool(ctx, gate, values.pushTool !== false, gatewayPort)
 }

@@ -1,4 +1,4 @@
-/* dsh-zen-remote · gateway interception (src/intercept.ts, T23b-1)
+/* dsh-aug-remote · gateway interception (src/intercept.ts, T23b-1)
  *
  * The fake gateway mirrors the ONE fact the wrap depends on (spike §2.2):
  * TypertGatewayService's constructor registers ARROW functions that look
@@ -27,7 +27,7 @@ const { request } = require('./util.cjs')
 // The REAL client-route handler, for the T62 route+intercept end-to-end.
 const routes = require('../lib/client-routes.js')
 
-process.env.DSH_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-intercept-'))
+process.env.DSH_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-intercept-'))
 process.on('exit', () => { try { fs.rmSync(process.env.DSH_HOME, { recursive: true, force: true }) } catch { /* best effort */ } })
 for (const key of Object.keys(process.env)) {
   if (/^(?:LAN_GATE|DSH_PUSH)_/.test(key)) delete process.env[key]
@@ -439,7 +439,7 @@ test('a shape refusal installs nothing (wiring)', async () => {
   assert.equal(Object.prototype.hasOwnProperty.call(gateway, 'openWireStream'), false, 'no wrap on a broken gateway')
   assert.equal(Object.prototype.hasOwnProperty.call(gateway, 'dispatchRpc'), false)
   assert.ok(warns.some((args) => String(args[0]).includes('intercept not installed')), warns.map(String).join('|'))
-  const status = await serveOnce(registered, '/_dsh/zen-remote/client/status')
+  const status = await serveOnce(registered, '/_dsh/aug-remote/client/status')
   assert.equal(status.intercept.installed, false)
   assert.equal(status.intercept.shape.ok, false)
   assert.ok(status.intercept.shape.reasons.length > 0)
@@ -944,7 +944,7 @@ test('T62/T65 e2e: the REAL client route feeds the intercept — report A, close
     // The browser reports session-a open; the server then closes its remote.
     const posted = await request(port, {
       method: 'POST',
-      path: '/_dsh/zen-remote/client/current-session',
+      path: '/_dsh/aug-remote/client/current-session',
       headers: { origin: `http://127.0.0.1:${port}` },
       body: { sessionId: toVirtual(SERVER_ID, 'session-a') },
     })
@@ -958,7 +958,7 @@ test('T62/T65 e2e: the REAL client route feeds the intercept — report A, close
     // merged archived frame (T65: the group copy keeps the tombstone).
     const away = await request(port, {
       method: 'POST',
-      path: '/_dsh/zen-remote/client/current-session',
+      path: '/_dsh/aug-remote/client/current-session',
       headers: { origin: `http://127.0.0.1:${port}` },
       body: { sessionId: 'session-l2' },
     })
@@ -1810,7 +1810,7 @@ test('the wiring installs on a good gateway and the status route surfaces it', a
   assert.equal(Object.prototype.hasOwnProperty.call(gateway, 'openWireStream'), true)
   assert.equal(Object.prototype.hasOwnProperty.call(gateway, 'dispatchRpc'), true)
 
-  const status = await serveOnce(registered, '/_dsh/zen-remote/client/status')
+  const status = await serveOnce(registered, '/_dsh/aug-remote/client/status')
   assert.equal(status.state, 'unpaired', 'the row is unpaired — the intercept rides along anyway')
   assert.equal(status.intercept.installed, true)
   assert.equal(status.intercept.shape.ok, true)
@@ -1818,7 +1818,7 @@ test('the wiring installs on a good gateway and the status route surfaces it', a
 
   // The self-check runs async: give it a beat, then confirm it landed.
   await new Promise((resolve) => setTimeout(resolve, 60))
-  const settled = await serveOnce(registered, '/_dsh/zen-remote/client/status')
+  const settled = await serveOnce(registered, '/_dsh/aug-remote/client/status')
   assert.deepEqual(settled.intercept.selfCheck, { ok: true })
 
   // Disposal uninstalls: the recorded effect disposers include the intercept's.
@@ -1846,7 +1846,7 @@ test('the wiring uninstalls when the self-check fails (unreachable wrap)', async
   // so the uninstall lands only after the retry.
   await new Promise((resolve) => setTimeout(resolve, 3_500))
   assert.equal(Object.prototype.hasOwnProperty.call(gateway, 'openWireStream'), false, 'a doubly failed self-check removes the wrap')
-  const status = await serveOnce(registered, '/_dsh/zen-remote/client/status')
+  const status = await serveOnce(registered, '/_dsh/aug-remote/client/status')
   assert.equal(status.intercept.installed, false)
   assert.equal(status.intercept.selfCheck.ok, false)
   for (const disposer of effects) disposer()
@@ -1916,7 +1916,7 @@ test('T51: the fetch-route wiring installs beside the typert wrap and the status
 
   // The status answer carries the new diagnostics block — the row is
   // unpaired, so the wrapper reports the offline refusal shape.
-  const status = await serveOnce(registered, '/_dsh/zen-remote/client/status')
+  const status = await serveOnce(registered, '/_dsh/aug-remote/client/status')
   assert.equal(status.fetchRouteIntercept.installed, true)
   assert.equal(status.fetchRouteIntercept.uploadWrapped, true)
   assert.equal(status.fetchRouteIntercept.exportWrapped, true)
@@ -1945,7 +1945,7 @@ test('T51: the fetch-route wiring installs beside the typert wrap and the status
   assert.equal(connection.routes.get(SESSION_EXPORT_PATH).fetch, originalExportFetch, 'the original export fetch came back')
   // A disposed row answers without the block at all — the honest "nothing
   // is installed here" the typert diagnostics degrade to as well.
-  const afterStatus = await serveOnce(registered, '/_dsh/zen-remote/client/status')
+  const afterStatus = await serveOnce(registered, '/_dsh/aug-remote/client/status')
   assert.equal(afterStatus.fetchRouteIntercept, undefined)
 })
 
@@ -1974,7 +1974,7 @@ test('T51-fix: a misshaped upload entry is refused for ITS route only; the rest 
     typertGateway: { [symbols.original]: gateway },
   })
   apply(ctx, { role: 'client' })
-  const status = await serveOnce(registered, '/_dsh/zen-remote/client/status')
+  const status = await serveOnce(registered, '/_dsh/aug-remote/client/status')
   assert.equal(status.fetchRouteIntercept.installed, true, 'the structural gate passed')
   assert.equal(status.fetchRouteIntercept.uploadWrapped, false, 'the misshaped entry was never wrapped')
   assert.equal(status.fetchRouteIntercept.uploadPending, false, 'present-but-wrong does not retry')

@@ -1,4 +1,4 @@
-/* dsh-zen-remote · virtual ids (src/virtual-id.ts, T23b-1)
+/* dsh-aug-remote · virtual ids (src/virtual-id.ts, T23b-1)
  *
  * The whole interception rests on this mapping being losslessly reversible
  * for ANY original id (session ids, workspace ids — arbitrary uuid strings,

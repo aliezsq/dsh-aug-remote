@@ -2,7 +2,7 @@ import type { ClientContext } from '../compat/types.ts'
 
 /** Per-browser opt-out flag; localStorage because remote (non-loopback)
     connections never persist the acknowledgement host-side. */
-const OPTOUT_KEY = 'dsh-zen-remote:welcome-notice-optout'
+const OPTOUT_KEY = 'dsh-aug-remote:welcome-notice-optout'
 
 /** Localized aria-labels of the DSH first-run notice dialog
     (@deepseek-ai/dsh-client-ui-settings-models WELCOME_NOTICE_COPY). */

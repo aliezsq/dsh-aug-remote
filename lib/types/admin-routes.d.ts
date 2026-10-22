@@ -16,7 +16,7 @@
  *   1. `admit` — routes registered via webServer.register do NOT pass
  *      through DSH's `/api` authentication, so each request must ask the
  *      connection service itself; its rejection is relayed verbatim.
- *   2. The gateway marker. A request wearing `x-zen-remote-via` arrived
+ *   2. The gateway marker. A request wearing `x-aug-remote-via` arrived
  *      THROUGH the gateway from a remote device (the gateway strips
  *      client-forged copies before stamping its own). POSTs are refused —
  *      pairing and device management are server-side acts. GET status is
@@ -37,28 +37,28 @@
  * drive it over a real socket with a mock gateway and a mock admit.
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { ConfigSource, ZenRemoteConfig } from './config.js';
+import type { ConfigSource, AugRemoteConfig } from './config.js';
 import type { BridgeRegistry } from './plugin-bridge.js';
 import type { RelayGateway } from './relay-server.js';
 import type { AgentStatusLike } from './share-ops.js';
 import type { ShareStore } from './share-store.js';
 /** Prefix all admin routes live under (one webServer prefix registration). */
-export declare const ADMIN_ROUTE_PREFIX = "/_dsh/zen-remote/admin";
+export declare const ADMIN_ROUTE_PREFIX = "/_dsh/aug-remote/admin";
 /** GET: the gateway's status verbatim plus the effective config; remote
  * callers get the live pairing code stripped. */
-export declare const ADMIN_STATUS_ROUTE = "/_dsh/zen-remote/admin/status";
+export declare const ADMIN_STATUS_ROUTE = "/_dsh/aug-remote/admin/status";
 /** POST `{role}`: mint a pairing code. */
-export declare const ADMIN_PAIR_ROUTE = "/_dsh/zen-remote/admin/pair";
+export declare const ADMIN_PAIR_ROUTE = "/_dsh/aug-remote/admin/pair";
 /** POST `{action, id?, role?, kind?, name?}`: device management, whitelist below. */
-export declare const ADMIN_ACTION_ROUTE = "/_dsh/zen-remote/admin/action";
+export declare const ADMIN_ACTION_ROUTE = "/_dsh/aug-remote/admin/action";
 /** POST: fire one fixed test notification through the gateway. */
-export declare const ADMIN_PUSH_TEST_ROUTE = "/_dsh/zen-remote/admin/push-test";
+export declare const ADMIN_PUSH_TEST_ROUTE = "/_dsh/aug-remote/admin/push-test";
 /** GET: every shared session with its clocks, viewers and titles.
  * POST `{action, sessionId?}`: share / unshare / unshare-all (T33a). */
-export declare const ADMIN_SHARES_ROUTE = "/_dsh/zen-remote/admin/shares";
+export declare const ADMIN_SHARES_ROUTE = "/_dsh/aug-remote/admin/shares";
 /** GET: the plugin bridge's registered plugins with their whole-machine-data
  * consent, for the settings page's 插件桥 section (PB-5). */
-export declare const ADMIN_PLUGIN_BRIDGE_ROUTE = "/_dsh/zen-remote/admin/plugin-bridge";
+export declare const ADMIN_PLUGIN_BRIDGE_ROUTE = "/_dsh/aug-remote/admin/plugin-bridge";
 /** What `connection.admit` answers: the operator peer, or the refusal status. */
 export type AdminAdmission = {
     readonly peer: unknown;
@@ -67,8 +67,8 @@ export type AdminAdmission = {
 };
 /** The effective-config snapshot resolveConfig() produces, recomputed per request. */
 export interface AdminConfigSnapshot {
-    values: ZenRemoteConfig;
-    sources: Record<keyof ZenRemoteConfig, ConfigSource>;
+    values: AugRemoteConfig;
+    sources: Record<keyof AugRemoteConfig, ConfigSource>;
 }
 export interface AdminHandlerOptions {
     /** The connection service's admit, injected by apply(); tests fake it. */

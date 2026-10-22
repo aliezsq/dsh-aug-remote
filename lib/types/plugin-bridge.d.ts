@@ -1,13 +1,13 @@
 /**
  * The plugin bridge's registration and comparison half (PB-1).
  *
- * Other DSH plugins can hand zen-remote a "bridge declaration": the list of
+ * Other DSH plugins can hand aug-remote a "bridge declaration": the list of
  * THEIR OWN HTTP routes that may be forwarded to the main server inside a
  * remote session (docs/adr/0001). A plugin counts as "bridged" only when
  * BOTH ends agree on the plugin name, the exact version AND the declaration
  * digest — everything here is the pure logic behind that agreement: the
  * declaration shape and its validation ({@link normalizeDeclaration}), the
- * per-process registry backing the `zenRemote` service
+ * per-process registry backing the `augRemote` service
  * ({@link createBridgeRegistry}), and the local-vs-server comparison that a
  * later task feeds handshake data into ({@link compareBridges}).
  *
@@ -48,7 +48,7 @@ export interface BridgeRoute {
     maxBody?: number;
     upgrade?: boolean;
 }
-/** What a plugin hands `zenRemote.bridge(...)` — the raw, unvalidated shape. */
+/** What a plugin hands `augRemote.bridge(...)` — the raw, unvalidated shape. */
 export interface BridgeDeclaration {
     plugin: string;
     version: string;
@@ -87,7 +87,7 @@ export interface NormalizedDeclaration {
  * Validate one declaration and fold it into its comparable form.
  *
  * Route paths must be plain absolute paths (start with `/`, no `?`, `#`,
- * `..` or whitespace) and must stay off the two prefixes zen-remote does not
+ * `..` or whitespace) and must stay off the two prefixes aug-remote does not
  * own: `/_dsh/` (the plugin's own surface) and `/api` (the host's shared
  * fetch channel) — bridging either would let a third plugin put words in the
  * host's mouth. The `/api` check is the literal string prefix, so a plugin
@@ -101,12 +101,12 @@ export interface NormalizedDeclaration {
  * @throws with a field-naming message on any illegal shape.
  */
 export declare function normalizeDeclaration(input: unknown): NormalizedDeclaration;
-/** The service provided on the row context as `zenRemote`, both roles. Other
- * plugins reach it with `ctx.inject(['zenRemote'], (c) => …)`; when
- * zen-remote is not installed the inject never fires, so dependents need no
+/** The service provided on the row context as `augRemote`, both roles. Other
+ * plugins reach it with `ctx.inject(['augRemote'], (c) => …)`; when
+ * aug-remote is not installed the inject never fires, so dependents need no
  * conditional code. Exported as a TYPE only — no Context augmentation, so
  * nothing here leaks into compositions without this plugin. */
-export interface ZenRemoteService {
+export interface AugRemoteService {
     /** Register this process's bridge declaration. Throws on an illegal
      * declaration (nothing is registered); on success returns the dispose that
      * removes exactly this registration. */
@@ -117,7 +117,7 @@ export interface ZenRemoteService {
 export interface CreateBridgeRegistryOptions {
     warn?: (message: string) => void;
 }
-/** The per-process declaration table behind the `zenRemote` service. */
+/** The per-process declaration table behind the `augRemote` service. */
 export interface BridgeRegistry {
     /** Validate and record one declaration (throws pass through, nothing is
      * registered). A same-plugin registration REPLACES the earlier one and
@@ -131,7 +131,7 @@ export interface BridgeRegistry {
      * and its own normalized routes, shapes the cooperative validator cannot
      * produce. The same-plugin replace/report/dispose semantics of
      * {@link register} apply unchanged — which is exactly the yielding rule:
-     * a plugin's own later `zenRemote.bridge(...)` call replaces the adapter's
+     * a plugin's own later `augRemote.bridge(...)` call replaces the adapter's
      * entry and a warn notes the takeover. */
     registerNormalized(normalized: NormalizedDeclaration): () => void;
     /** All live declarations, sorted by plugin name. */

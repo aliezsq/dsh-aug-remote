@@ -1,4 +1,4 @@
-// dsh-zen-remote · T70 the portaled permission menu becomes the bottom sheet
+// dsh-aug-remote · T70 the portaled permission menu becomes the bottom sheet
 //
 // DSH 0.2.0 portals the permission menu to body (`portal: true` on the Menu
 // primitive), so composer.css section 4's descendant selectors stopped

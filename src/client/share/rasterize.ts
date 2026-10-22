@@ -733,7 +733,7 @@ function measureUltraTurn(root: ShadowRoot, card: HTMLElement, turn: TurnMeasure
     if (!fits) geo = ultraSliceWidth(turn.role, extent, cardPaddingX, targetWidth)
   }
   if (!fits) {
-    console.warn(`[dsh-zen-remote] share-image: ultra turn ${turn.seq} still wider than its slice after 3 re-measures (content ${scrollWidth}px > render width ${geo.renderWidth}px); exporting may clip its right edge`)
+    console.warn(`[dsh-aug-remote] share-image: ultra turn ${turn.seq} still wider than its slice after 3 re-measures (content ${scrollWidth}px > render width ${geo.renderWidth}px); exporting may clip its right edge`)
   }
   return { height, renderWidth: geo.renderWidth, scale: geo.scale }
 }
@@ -879,7 +879,7 @@ async function paintSlice(clone: HTMLElement, slice: PlannedSlice, pixelRatio: n
       // quietly truncated image.
       const needed = Math.ceil(logicalHeight * geo.transformScale)
       const detail = `slice ${slice.from}-${slice.to} measured ${needed}px tall at stitch width ${globalWidth}px, but the canvas budget caps it at ${geo.height}px — refusing a silent bottom clip`
-      console.warn(`[dsh-zen-remote] share-image: ${detail} (the global lever should have prevented this)`)
+      console.warn(`[dsh-aug-remote] share-image: ${detail} (the global lever should have prevented this)`)
       throw new ShareRasterizeError('slice-over-budget', detail)
     }
     width = geo.width
@@ -956,7 +956,7 @@ export async function ensureProbe(): Promise<void> {
     probeOutcome = 'ok'
   } catch (err) {
     probeOutcome = 'failed'
-    console.error('[dsh-zen-remote] share-image rasterize probe failed — this browser cannot paint SVG foreignObject content', err)
+    console.error('[dsh-aug-remote] share-image rasterize probe failed — this browser cannot paint SVG foreignObject content', err)
     throw new ShareRasterizeError('probe-failed', err instanceof Error ? err.message : String(err))
   }
 }

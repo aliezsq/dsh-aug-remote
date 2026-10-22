@@ -23,7 +23,7 @@ import type { ClientContext } from '../compat/types.ts'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 // Type-only: the renderer declares `ctx.slots` on the cordis Context.
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
-import { DEVICE_TOKEN_FIELD, ZenRemoteSettingsForm } from '../../client-data/settings-form.ts'
+import { DEVICE_TOKEN_FIELD, AugRemoteSettingsForm } from '../../client-data/settings-form.ts'
 import { getSharesStore } from '../../client-data/shares.ts'
 import { NS, en, zh } from '../locales.ts'
 import { SETTINGS_CSS } from './settings-css.ts'
@@ -52,10 +52,10 @@ declare module '@deepseek-ai/cordis' {
 }
 
 /** Settings entry (= profile entry id = bundle row id) this page edits. */
-export const SETTINGS_ENTRY_ID = 'dsh-zen-remote'
+export const SETTINGS_ENTRY_ID = 'dsh-aug-remote'
 
 /** `plugins.row.config` key: <package name>#<row id> as the bundle patch declares the row. */
-export const SETTINGS_ROW_KEY = 'dsh-zen-remote#dsh-zen-remote'
+export const SETTINGS_ROW_KEY = 'dsh-aug-remote#dsh-aug-remote'
 
 /**
  * Register the dictionaries, the settings stylesheet, and (lazily, only where
@@ -71,11 +71,11 @@ export function registerSettingsPage(ctx: ClientContext, section: typeof Setting
 
   ctx.effect(() => {
     const tag = document.createElement('style')
-    tag.dataset.plugin = 'dsh-zen-remote-settings'
+    tag.dataset.plugin = 'dsh-aug-remote-settings'
     tag.textContent = SETTINGS_CSS
     document.head.appendChild(tag)
     return () => { tag.remove() }
-  }, 'dsh-zen-remote: settings styles')
+  }, 'dsh-aug-remote: settings styles')
 
   // The Configure control exists exactly while the Host serves the entry
   // (whileServed also waits out the mirror's first read). The form controller
@@ -97,11 +97,11 @@ export function registerSettingsPage(ctx: ClientContext, section: typeof Setting
         (secret) => secret.path.length === 1 && secret.path[0] === DEVICE_TOKEN_FIELD && secret.set,
       )
     }
-    const config = new ZenRemoteSettingsForm(scope, secretConfigured)
+    const config = new AugRemoteSettingsForm(scope, secretConfigured)
     // The controller holds a scope subscription; release it (and the
     // describe follow) when the fiber that built it is disposed.
     const offDescribe = describe.subscribe(() => { config.refresh() })
-    formsCtx.effect(() => () => { offDescribe(); config.dispose() }, 'dsh-zen-remote: settings form')
+    formsCtx.effect(() => () => { offDescribe(); config.dispose() }, 'dsh-aug-remote: settings form')
     formsCtx.effect(() => formsCtx.configForms.whileServed([SETTINGS_ENTRY_ID], () =>
       formsCtx.slots.inject('plugins.row.config', () => formsCtx.slots.register({
         name: 'plugins.row.config',
@@ -111,6 +111,6 @@ export function registerSettingsPage(ctx: ClientContext, section: typeof Setting
         // as the title-row icon and the session menu — one poll loop total.
         inject: () => ({ config, shares: getSharesStore() }),
       }, section)),
-    ), 'dsh-zen-remote: row config page')
+    ), 'dsh-aug-remote: row config page')
   })
 }

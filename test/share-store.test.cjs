@@ -1,4 +1,4 @@
-/* dsh-zen-remote · share-store (src/share-store.ts)
+/* dsh-aug-remote · share-store (src/share-store.ts)
  *
  * The T21 shared-table module is pure logic + one JSON file, so these tests
  * run it for real: the BUILT lib/share-store.js (same committed artifact

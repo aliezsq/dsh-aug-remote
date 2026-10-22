@@ -1,25 +1,25 @@
 /**
  * Settings-page CSS for the plugin-row block (T15), transcribed from the
  * dsh-llm-verifier section styles so the page reads as native. Injected as
- * one `<style data-plugin="dsh-zen-remote-settings">` tag; every selector is
+ * one `<style data-plugin="dsh-aug-remote-settings">` tag; every selector is
  * scoped under the block's own attribute so nothing can reach the phone-shell
  * styles (the CSS-division rule in AGENTS.md — the shell keeps its own
  * stylesheets, this surface owns its own).
  */
 
 export const SETTINGS_CSS = `
-[data-zen-remote="settings"] {
+[data-aug-remote="settings"] {
   display: flex;
   flex-direction: column;
   gap: 12px;
   max-width: 760px;
 }
-[data-zen-remote="settings"] .zr-settings-summary {
+[data-aug-remote="settings"] .zr-settings-summary {
   font-size: 13px;
   color: var(--dsw-alias-label-tertiary);
   margin: 0;
 }
-[data-zen-remote="settings"] .zr-settings-notice {
+[data-aug-remote="settings"] .zr-settings-notice {
   font-size: 13px;
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: 8px;
@@ -28,13 +28,13 @@ export const SETTINGS_CSS = `
   color: var(--dsw-alias-label-secondary);
   margin: 0;
 }
-[data-zen-remote="settings"] .zr-settings-card {
+[data-aug-remote="settings"] .zr-settings-card {
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: 12px;
   background: var(--dsw-alias-bg-layer-2);
   padding: 4px 16px;
 }
-[data-zen-remote="settings"] .zr-settings-card-title {
+[data-aug-remote="settings"] .zr-settings-card-title {
   font-size: 15px;
   font-weight: 600;
   color: var(--dsw-alias-label-primary);
@@ -43,16 +43,16 @@ export const SETTINGS_CSS = `
   align-items: center;
   gap: 8px;
 }
-[data-zen-remote="settings"] .zr-settings-field {
+[data-aug-remote="settings"] .zr-settings-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 12px 0;
 }
-[data-zen-remote="settings"] .zr-settings-field + .zr-settings-field {
+[data-aug-remote="settings"] .zr-settings-field + .zr-settings-field {
   border-top: 1px solid var(--dsw-alias-border-l2);
 }
-[data-zen-remote="settings"] .zr-settings-head {
+[data-aug-remote="settings"] .zr-settings-head {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -60,24 +60,24 @@ export const SETTINGS_CSS = `
 /* The head's title text: real labels (they name the select/checkbox below)
    and the two .zr-settings-head-title spans whose text names no form control
    (the pairing code readout, the push-test button) share the look. */
-[data-zen-remote="settings"] .zr-settings-head label,
-[data-zen-remote="settings"] .zr-settings-head .zr-settings-head-title {
+[data-aug-remote="settings"] .zr-settings-head label,
+[data-aug-remote="settings"] .zr-settings-head .zr-settings-head-title {
   flex: 1;
   font-size: 13px;
   font-weight: 500;
   color: var(--dsw-alias-label-primary);
 }
-[data-zen-remote="settings"] .zr-settings-badge {
+[data-aug-remote="settings"] .zr-settings-badge {
   font-size: 11px;
   border-radius: 999px;
   padding: 2px 8px;
   background: var(--dsw-alias-bg-module-platform);
   color: var(--dsw-alias-label-secondary);
 }
-[data-zen-remote="settings"] .zr-settings-badge[data-warn="true"] {
+[data-aug-remote="settings"] .zr-settings-badge[data-warn="true"] {
   color: var(--dsw-alias-state-warning-primary, #b8860b);
 }
-[data-zen-remote="settings"] .zr-settings-reset {
+[data-aug-remote="settings"] .zr-settings-reset {
   font-size: 12px;
   border: none;
   background: none;
@@ -85,11 +85,11 @@ export const SETTINGS_CSS = `
   cursor: pointer;
   color: var(--dsw-alias-label-secondary);
 }
-[data-zen-remote="settings"] .zr-settings-reset:hover {
+[data-aug-remote="settings"] .zr-settings-reset:hover {
   color: var(--dsw-alias-label-primary);
 }
-[data-zen-remote="settings"] input.zr-settings-input,
-[data-zen-remote="settings"] select.zr-settings-input {
+[data-aug-remote="settings"] input.zr-settings-input,
+[data-aug-remote="settings"] select.zr-settings-input {
   height: 34px;
   border-radius: 8px;
   border: 1px solid var(--dsw-alias-border-l2);
@@ -98,48 +98,48 @@ export const SETTINGS_CSS = `
   font-size: 13px;
   padding: 0 10px;
 }
-[data-zen-remote="settings"] select.zr-settings-input {
+[data-aug-remote="settings"] select.zr-settings-input {
   max-width: 260px;
 }
-[data-zen-remote="settings"] .zr-settings-hint {
+[data-aug-remote="settings"] .zr-settings-hint {
   font-size: 12px;
   color: var(--dsw-alias-label-tertiary);
   margin: 0;
 }
-[data-zen-remote="settings"] .zr-settings-hint[data-invalid="true"] {
+[data-aug-remote="settings"] .zr-settings-hint[data-invalid="true"] {
   color: var(--dsw-alias-state-error-primary, #d5304f);
 }
-[data-zen-remote="settings"] .zr-settings-check-row {
+[data-aug-remote="settings"] .zr-settings-check-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-[data-zen-remote="settings"] .zr-settings-check-row input[type="checkbox"] {
+[data-aug-remote="settings"] .zr-settings-check-row input[type="checkbox"] {
   width: 16px;
   height: 16px;
   accent-color: var(--dsw-alias-label-primary);
 }
-[data-zen-remote="settings"] .zr-settings-row {
+[data-aug-remote="settings"] .zr-settings-row {
   display: flex;
   gap: 8px;
   align-items: center;
 }
-[data-zen-remote="settings"] .zr-settings-status-line {
+[data-aug-remote="settings"] .zr-settings-status-line {
   font-size: 12px;
   color: var(--dsw-alias-label-secondary);
   margin: 0;
   padding: 10px 0 12px;
 }
-[data-zen-remote="settings"] .zr-settings-status-line[data-down="true"] {
+[data-aug-remote="settings"] .zr-settings-status-line[data-down="true"] {
   color: var(--dsw-alias-state-error-primary, #d5304f);
 }
-[data-zen-remote="settings"] .zr-settings-role-cards {
+[data-aug-remote="settings"] .zr-settings-role-cards {
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 12px 0;
 }
-[data-zen-remote="settings"] .zr-settings-role-card {
+[data-aug-remote="settings"] .zr-settings-role-card {
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: 8px;
   padding: 10px 12px;
@@ -152,10 +152,10 @@ export const SETTINGS_CSS = `
   font: inherit;
   color: inherit;
 }
-[data-zen-remote="settings"] .zr-settings-role-card[data-active="true"] {
+[data-aug-remote="settings"] .zr-settings-role-card[data-active="true"] {
   border-color: var(--dsw-alias-label-primary);
 }
-[data-zen-remote="settings"] .zr-settings-role-card-title {
+[data-aug-remote="settings"] .zr-settings-role-card-title {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -163,71 +163,71 @@ export const SETTINGS_CSS = `
   font-weight: 500;
   color: var(--dsw-alias-label-primary);
 }
-[data-zen-remote="settings"] .zr-settings-role-card-title input[type="radio"] {
+[data-aug-remote="settings"] .zr-settings-role-card-title input[type="radio"] {
   width: 15px;
   height: 15px;
   accent-color: var(--dsw-alias-label-primary);
 }
-[data-zen-remote="settings"] .zr-settings-code-input {
+[data-aug-remote="settings"] .zr-settings-code-input {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   letter-spacing: 4px;
   text-transform: uppercase;
   max-width: 220px;
 }
-[data-zen-remote="settings"] .zr-settings-pair-code {
+[data-aug-remote="settings"] .zr-settings-pair-code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 28px;
   letter-spacing: 4px;
   color: var(--dsw-alias-label-primary);
   margin: 4px 0 0;
 }
-[data-zen-remote="settings"] .zr-settings-device {
+[data-aug-remote="settings"] .zr-settings-device {
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 12px 0;
 }
-[data-zen-remote="settings"] .zr-settings-device + .zr-settings-device {
+[data-aug-remote="settings"] .zr-settings-device + .zr-settings-device {
   border-top: 1px solid var(--dsw-alias-border-l2);
 }
-[data-zen-remote="settings"] .zr-settings-device-head {
+[data-aug-remote="settings"] .zr-settings-device-head {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
-[data-zen-remote="settings"] .zr-settings-device-name {
+[data-aug-remote="settings"] .zr-settings-device-name {
   font-size: 13px;
   font-weight: 500;
   color: var(--dsw-alias-label-primary);
 }
-[data-zen-remote="settings"] .zr-settings-device-actions {
+[data-aug-remote="settings"] .zr-settings-device-actions {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }
-[data-zen-remote="settings"] .zr-settings-device-actions select.zr-settings-input {
+[data-aug-remote="settings"] .zr-settings-device-actions select.zr-settings-input {
   height: 28px;
   max-width: 170px;
 }
-[data-zen-remote="settings"] .zr-settings-share-row {
+[data-aug-remote="settings"] .zr-settings-share-row {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 0;
 }
-[data-zen-remote="settings"] .zr-settings-share-row + .zr-settings-share-row {
+[data-aug-remote="settings"] .zr-settings-share-row + .zr-settings-share-row {
   border-top: 1px solid var(--dsw-alias-border-l2);
 }
-[data-zen-remote="settings"] .zr-settings-share-row .zr-settings-device-head {
+[data-aug-remote="settings"] .zr-settings-share-row .zr-settings-device-head {
   flex: 1;
   min-width: 0;
 }
-[data-zen-remote="settings"] .zr-settings-badge[data-live="true"] {
+[data-aug-remote="settings"] .zr-settings-badge[data-live="true"] {
   color: var(--dsw-alias-state-success-primary, #16a34a);
 }
-[data-zen-remote="settings"] .zr-settings-footer {
+[data-aug-remote="settings"] .zr-settings-footer {
   display: flex;
   align-items: center;
   gap: 8px;

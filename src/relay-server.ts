@@ -11,7 +11,7 @@
  *
  * Why the secret: the desktop client is a Node process on another machine —
  * it has no DSH login cookie, so the gateway authenticates it with a Bearer
- * pairing token and marks the forwarded request with `x-zen-remote-*` headers.
+ * pairing token and marks the forwarded request with `x-aug-remote-*` headers.
  * But DSH only listens on 127.0.0.1, where any local process could bypass the
  * gateway and forge those headers. The plugin therefore mints a per-apply
  * secret, hands it to the gateway child through `LAN_GATE_RELAY_SECRET`, the
@@ -20,7 +20,7 @@
  *
  * Path dispatch never decodes the request path. The gateway only admits relay
  * paths whose raw and URL-normalized forms are byte-identical, which lets
- * `/_dsh/zen-remote/relay/..%2f..%2fapi` through — decoding it here before
+ * `/_dsh/aug-remote/relay/..%2f..%2fapi` through — decoding it here before
  * matching would reopen the traversal the gateway just closed. Every route is
  * an exact comparison on `new URL(req.url).pathname` as-is; anything else is
  * a 404.
@@ -59,7 +59,7 @@ import { matchAdapterRoute, locateAdapterIds, adapterOwnsRegistryEntry, AdapterM
  * pathname.startsWith(p + '/')`, so a trailing slash here would match only
  * `…/relay//…` shapes and never `…/relay/ping`.
  */
-export const RELAY_PREFIX = '/_dsh/zen-remote/relay'
+export const RELAY_PREFIX = '/_dsh/aug-remote/relay'
 
 /** The one protocol version this file speaks; the handshake reports it. */
 const RELAY_PROTOCOL = 1
@@ -123,7 +123,7 @@ const MAX_MESSAGE_CHARS = 500
  */
 const DSH_ERROR_CODE = /^[a-z][a-zA-Z-]*\/[a-zA-Z-]+$/
 
-/** Concurrent streams one device may hold open (per `x-zen-remote-device`). */
+/** Concurrent streams one device may hold open (per `x-aug-remote-device`). */
 const MAX_STREAMS_PER_DEVICE = 32
 
 /**
@@ -169,13 +169,13 @@ const DEFAULT_END_DRAIN_TIMEOUT_MS = 5_000
 const DEFAULT_UPLOAD_CAP_BYTES = MAX_UPLOAD_BYTES
 
 /**
- * Decode the gateway's `x-zen-remote-device-name` marking header (T59): the
+ * Decode the gateway's `x-aug-remote-device-name` marking header (T59): the
  * gateway percent-encodes the device table's current name; `undefined` when
  * the header is absent, blank, or not valid percent-encoding (an old gateway,
  * a direct local call). Never throws.
  */
 function deviceNameHeaderOf(req: IncomingMessage): string | undefined {
-  const raw = headerValue(req, 'x-zen-remote-device-name')
+  const raw = headerValue(req, 'x-aug-remote-device-name')
   if (raw === undefined || raw === '') return undefined
   try {
     const decoded = decodeURIComponent(raw)
@@ -314,7 +314,7 @@ export interface RelayHandlerOptions {
    * mounted it, old tests — and `POST relay/v1/plugin` answers 501
    * `unsupported`, exactly like the `/api` passthrough without a dispatcher. */
   pluginBridge?: {
-    /** THIS process's bridge declaration registry (the `zenRemote` service's
+    /** THIS process's bridge declaration registry (the `augRemote` service's
      * backing table) — the source of truth for "which plugin, which version,
      * which routes". */
     registry: BridgeRegistry
@@ -362,7 +362,7 @@ export interface RelayHandler {
  * countable about the deployment. */
 const SERVER_ID_PATTERN = /^[0-9a-f]{8}$/
 
-const SERVER_ID_FILE = 'zen-remote-server.json'
+const SERVER_ID_FILE = 'aug-remote-server.json'
 
 /**
  * Read the persisted server id, creating (and persisting) one on first use.
@@ -424,13 +424,13 @@ function responseJson(res: ServerResponse, status: number, body: unknown): void 
 
 /**
  * One plugin-bridge refusal (PB-3): the same JSON envelope as every other
- * relay refusal, plus the `x-zen-remote-error` marker header — the
+ * relay refusal, plus the `x-aug-remote-error` marker header — the
  * sub-client's passthrough layer reads the CODE off a response whose body
  * it must not have to parse (the success path streams opaque plugin bytes;
  * keeping the refusal marker a header lets one code path classify both).
  */
 function relayPluginError(res: ServerResponse, status: number, code: string): void {
-  res.setHeader('x-zen-remote-error', code)
+  res.setHeader('x-aug-remote-error', code)
   responseJson(res, status, { ok: false, error: { code } })
 }
 
@@ -847,7 +847,7 @@ function errorOf(error: unknown): { code: string; message?: string; details?: Re
  * into the same silent ok DSH gives a stale result).
  */
 interface EventsSubscription {
-  /** The `x-zen-remote-device` the subscription rides on; answers from any
+  /** The `x-aug-remote-device` the subscription rides on; answers from any
    * other device are refused before the registry is read. */
   device: string
   /** The random token baked into every forwarded eventId. */
@@ -869,7 +869,7 @@ interface EventsSubscription {
  * Every request passes the same gate first: gateway secret, then the two
  * marking headers. Failures answer a uniform 401 that does not say WHICH
  * check failed — the difference would only help someone probing the wall.
- * After the gate, `x-zen-remote-device` is the caller's device id (the
+ * After the gate, `x-aug-remote-device` is the caller's device id (the
  * per-device stream budget hangs off it).
  *
  * @param options - secret, share store, gateway service and server facts.
@@ -929,7 +929,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
 
   /**
    * The device NAME this process last saw per device id (T59): every relay
-   * request rides the gateway's fresh `x-zen-remote-device-name` marking
+   * request rides the gateway's fresh `x-aug-remote-device-name` marking
    * header, so the map learns a rename as soon as that device sends anything
    * at all — and the NDJSON heartbeat reads the LATEST known name per ping,
    * which is how a server-side rename reaches a connected client without a
@@ -1167,9 +1167,9 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
 
   const handle: RelayHandler = async function handleRelay(req, res) {
     if (
-      !secretsMatch(headerValue(req, 'x-zen-remote-secret'), secret) ||
-      headerValue(req, 'x-zen-remote-via') !== 'gateway' ||
-      headerValue(req, 'x-zen-remote-role') !== 'desktop-client'
+      !secretsMatch(headerValue(req, 'x-aug-remote-secret'), secret) ||
+      headerValue(req, 'x-aug-remote-via') !== 'gateway' ||
+      headerValue(req, 'x-aug-remote-role') !== 'desktop-client'
     ) {
       responseJson(res, 401, { ok: false, error: { code: 'relay-unauthorized' } })
       return
@@ -1180,7 +1180,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
     // stamps the device table's CURRENT name on every forward, so this line
     // is where a rename (admin edit, or the device's own push) lands.
     const deviceNameHeader = deviceNameHeaderOf(req)
-    const gateDeviceId = headerValue(req, 'x-zen-remote-device')
+    const gateDeviceId = headerValue(req, 'x-aug-remote-device')
     if (gateDeviceId !== undefined && gateDeviceId !== '' && deviceNameHeader !== undefined) {
       deviceNames.set(gateDeviceId, deviceNameHeader)
     }
@@ -1289,7 +1289,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
       const originalEventId = separator === -1 ? '' : parsed.eventId.slice(separator + 1)
       let owner: { clientId: string; agentId: string } | undefined
       if (token !== '' && originalEventId !== '') {
-        const device = headerValue(req, 'x-zen-remote-device') ?? ''
+        const device = headerValue(req, 'x-aug-remote-device') ?? ''
         for (const sub of liveEventSubscriptions) {
           if (sub.token !== token) continue
           if (sub.device !== device) break
@@ -1376,7 +1376,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
       // budget below. Counted only from here (every earlier refusal is
       // answered before this line) and released in the route's finally,
       // which every path through the try reaches.
-      const device = headerValue(req, 'x-zen-remote-device') ?? ''
+      const device = headerValue(req, 'x-aug-remote-device') ?? ''
       if ((invokesByDevice.get(device) ?? 0) >= MAX_INVOKES_PER_DEVICE) {
         responseJson(res, 429, { ok: false, error: { code: 'too-many-invokes' } })
         return
@@ -1666,7 +1666,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
           }
           // The per-device budget — the SAME table the cooperative forwards
           // share, held for the whole response stream.
-          const adapterDevice = headerValue(req, 'x-zen-remote-device') ?? ''
+          const adapterDevice = headerValue(req, 'x-aug-remote-device') ?? ''
           if ((pluginsByDevice.get(adapterDevice) ?? 0) >= MAX_PLUGIN_REQUESTS_PER_DEVICE) {
             relayPluginError(res, 429, 'busy')
             return
@@ -1944,7 +1944,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
       const normalizedQuery = validation.normalizedQuery
       // 7. the per-device budget — taken only after every wall above, held
       //    for the whole response stream, released in the finally.
-      const device = headerValue(req, 'x-zen-remote-device') ?? ''
+      const device = headerValue(req, 'x-aug-remote-device') ?? ''
       if ((pluginsByDevice.get(device) ?? 0) >= MAX_PLUGIN_REQUESTS_PER_DEVICE) {
         relayPluginError(res, 429, 'busy')
         return
@@ -2022,7 +2022,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
           bodySignal,
         )
         // Success: status plus the three whitelisted headers travel, the
-        // body streams — and NO x-zen-remote-error (the marker is refusal-
+        // body streams — and NO x-aug-remote-error (the marker is refusal-
         // only, so the client can classify with one header read).
         res.writeHead(outbound.status, {
           ...(outbound.contentType !== undefined ? { 'Content-Type': outbound.contentType } : {}),
@@ -2206,7 +2206,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
       // (T5x): that construction is the one step between the check and the
       // dispatch that can fail and return outside the finally, and a taken-
       // then-abandoned slot would quietly shrink this device's budget.
-      const device = headerValue(req, 'x-zen-remote-device') ?? ''
+      const device = headerValue(req, 'x-aug-remote-device') ?? ''
       if ((uploadsByDevice.get(device) ?? 0) >= MAX_UPLOADS_PER_DEVICE) {
         await drainUpload(req, 0, drainDeadlineMs)
         responseJson(res, 429, { ok: false, error: { code: 'too-many-uploads' } })
@@ -2314,7 +2314,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
         responseJson(res, 501, { ok: false, error: { code: 'unsupported' } })
         return
       }
-      const device = headerValue(req, 'x-zen-remote-device') ?? ''
+      const device = headerValue(req, 'x-aug-remote-device') ?? ''
       if ((uploadsByDevice.get(device) ?? 0) >= MAX_UPLOADS_PER_DEVICE) {
         await drainUpload(req, 0, drainDeadlineMs)
         responseJson(res, 429, { ok: false, error: { code: 'too-many-uploads' } })
@@ -2385,7 +2385,7 @@ export function createRelayHandler(options: RelayHandlerOptions): RelayHandler {
         responseJson(res, 403, { ok: false, error: { code: decision.reason } })
         return
       }
-      const device = headerValue(req, 'x-zen-remote-device') ?? ''
+      const device = headerValue(req, 'x-aug-remote-device') ?? ''
       if ((streamsByDevice.get(device) ?? 0) >= MAX_STREAMS_PER_DEVICE) {
         responseJson(res, 429, { ok: false, error: { code: 'too-many-streams' } })
         return

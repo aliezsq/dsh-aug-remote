@@ -1,4 +1,4 @@
-/* dsh-zen-remote · CP4 gateway hardening
+/* dsh-aug-remote · CP4 gateway hardening
  *
  * Three walls, each pinned by its regression:
  *   1. DNS rebinding — isLocalDirect now also demands a loopback Host, so a
@@ -225,7 +225,7 @@ test('revoke tears down an open device HTTP stream (forwards register their sock
     let lines = 0
     let closed = false
     const req = http.request({
-      host: '127.0.0.1', port: PORT, method: 'POST', path: '/_dsh/zen-remote/relay/v1/stream',
+      host: '127.0.0.1', port: PORT, method: 'POST', path: '/_dsh/aug-remote/relay/v1/stream',
       headers: { ...REMOTE_HEADERS, authorization: 'Bearer ' + d.token, 'content-type': 'application/json' },
     }, (res) => {
       res.on('data', (c) => { lines += String(c).split('\n').filter(Boolean).length })
@@ -343,7 +343,7 @@ test('sequential: A finishes, B streams on the same socket — revoking B discon
 // A throwaway intermediary plays the parent: it spawns the gateway, the test
 // SIGKILLs the intermediary, and the gateway has to take the port down.
 test('orphan guard: a gateway whose parent died exits within a few seconds', { timeout: 30000 }, async (t) => {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-orphan-'))
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-orphan-'))
   const ORPHAN_PORT = await freePort()
   const SPAWNER = 'const { spawn } = require("node:child_process");' +
     'const c = spawn(process.execPath, [process.env.GW], { env: process.env, stdio: ["ignore", "pipe", "pipe"] });' +

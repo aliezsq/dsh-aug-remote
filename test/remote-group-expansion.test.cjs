@@ -1,4 +1,4 @@
-// dsh-zen-remote · T64 remote group expansion memory (src/client-data/remote-group-expansion.ts
+// dsh-aug-remote · T64 remote group expansion memory (src/client-data/remote-group-expansion.ts
 // + src/client/remote-group-expansion.ts)
 //
 // The server groups' expansion state dies on every page load (the host's

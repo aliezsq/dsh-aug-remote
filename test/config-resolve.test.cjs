@@ -1,4 +1,4 @@
-/* dsh-zen-remote · config resolution (src/config.ts → lib/config.js)
+/* dsh-aug-remote · config resolution (src/config.ts → lib/config.js)
  *
  * The four-layer merge contract — env > plugin row > lan-gate.config.json >
  * defaults — with per-layer validation: an illegal value makes its layer
@@ -40,7 +40,7 @@ test.after(() => {
 
 /** One throwaway DSH_HOME passed to readFileConfig explicitly; removed after. */
 async function withTempHome(fn) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-config-'))
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-config-'))
   try { return await fn({ DSH_HOME: home }) } finally { fs.rmSync(home, { recursive: true, force: true }) }
 }
 

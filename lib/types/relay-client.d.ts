@@ -249,7 +249,7 @@ export interface RelayClient {
      * x-zr-* headers (PB-3's protocol), no body. Resolves with the UNREAD
      * fetch Response the moment the headers arrive — the caller streams the
      * body itself — and EVERY HTTP status is carried verbatim (a refusal's
-     * `x-zen-remote-error` header is the caller's classifier, never an
+     * `x-aug-remote-error` header is the caller's classifier, never an
      * exception here). The header wait gets the plain request timeout; the
      * BODY carries no deadline of our own (a stream takes as long as it
      * takes) — the caller's signal aborts it. Transport deaths judge the
@@ -263,7 +263,7 @@ export interface RelayClient {
      * raw bytes (each `data` line decoded) and ENDS when the server writes
      * the `end` line (upstream closed or errored). A refusal (any non-200 or
      * a missing open line) throws RelayError with the wire's
-     * `x-zen-remote-error` code. */
+     * `x-aug-remote-error` code. */
     pluginTunnelOpen(request: RelayPluginRequest & {
         wsHeaders: {
             'sec-websocket-key': string;

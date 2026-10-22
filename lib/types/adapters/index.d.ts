@@ -12,6 +12,6 @@
  * adapter (better-sidebar) arrives with PB-12.
  */
 import type { BridgeAdapter } from './types.js';
-/** Every adapter zen-remote ships, in registration order. */
+/** Every adapter aug-remote ships, in registration order. */
 export declare const ADAPTERS: readonly BridgeAdapter[];
 //# sourceMappingURL=index.d.ts.map

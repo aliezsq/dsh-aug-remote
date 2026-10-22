@@ -1,4 +1,4 @@
-/* dsh-zen-remote · activity (src/activity.ts)
+/* dsh-aug-remote · activity (src/activity.ts)
  *
  * The T22c tracker + sweeper are pure logic over the T21 shared table, so
  * these tests run them for real: the BUILT lib/activity.js and

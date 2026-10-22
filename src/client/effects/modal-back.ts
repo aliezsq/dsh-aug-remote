@@ -94,5 +94,5 @@ export function installModalBack(ctx: ClientContext): void {
       for (const id of tracked.values()) if (hasLayer(id)) popLayer(id)
       tracked.clear()
     }
-  }, 'dsh-zen-remote: modal back gesture')
+  }, 'dsh-aug-remote: modal back gesture')
 }

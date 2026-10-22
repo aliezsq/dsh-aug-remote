@@ -16,7 +16,7 @@
  *   1. `admit` — routes registered via webServer.register do NOT pass
  *      through DSH's `/api` authentication, so each request must ask the
  *      connection service itself; its rejection is relayed verbatim.
- *   2. The gateway marker. A request wearing `x-zen-remote-via` arrived
+ *   2. The gateway marker. A request wearing `x-aug-remote-via` arrived
  *      THROUGH the gateway from a remote device (the gateway strips
  *      client-forged copies before stamping its own). POSTs are refused —
  *      pairing and device management are server-side acts. GET status is
@@ -40,7 +40,7 @@
 import { withPeer } from './owner-peer.js'
 import { request as httpRequest } from 'node:http'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import type { ConfigSource, ZenRemoteConfig } from './config.js'
+import type { ConfigSource, AugRemoteConfig } from './config.js'
 import { responseJson, sameOriginPost } from './http.js'
 import type { BridgeRegistry } from './plugin-bridge.js'
 import type { RelayGateway } from './relay-server.js'
@@ -49,7 +49,7 @@ import type { AgentStatusLike } from './share-ops.js'
 import type { ShareStore } from './share-store.js'
 
 /** Prefix all admin routes live under (one webServer prefix registration). */
-export const ADMIN_ROUTE_PREFIX = '/_dsh/zen-remote/admin'
+export const ADMIN_ROUTE_PREFIX = '/_dsh/aug-remote/admin'
 
 /** GET: the gateway's status verbatim plus the effective config; remote
  * callers get the live pairing code stripped. */
@@ -79,7 +79,7 @@ const GATEWAY_TIMEOUT_MS = 5000
 const MAX_BODY_BYTES = 16 * 1024
 
 /** Tag every test notification carries, so the phone can spot and sweep them. */
-const TEST_PUSH_TAG = 'dsh-zen-remote-test'
+const TEST_PUSH_TAG = 'dsh-aug-remote-test'
 
 /** The device-management verbs this surface forwards. `new-code` is
  * deliberately absent: minting codes is the pair route's job, and forwarding
@@ -96,8 +96,8 @@ const PROJECTION_TIMEOUT_MS = 5000
 /** Fixed test-push copy — Chinese by default, English for `lang: 'en'`
  * (`'auto'` has no requester signal here, so it falls to Chinese). */
 const TEST_PUSH_COPY = {
-  zh: { title: 'DSH 测试推送', body: '这是一条来自 dsh-zen-remote 设置页的测试通知' },
-  en: { title: 'DSH Test Push', body: 'This is a test notification from the dsh-zen-remote settings page' },
+  zh: { title: 'DSH 测试推送', body: '这是一条来自 dsh-aug-remote 设置页的测试通知' },
+  en: { title: 'DSH Test Push', body: 'This is a test notification from the dsh-aug-remote settings page' },
 } as const
 
 /**
@@ -125,8 +125,8 @@ export type AdminAdmission = { readonly peer: unknown } | { readonly rejection: 
 
 /** The effective-config snapshot resolveConfig() produces, recomputed per request. */
 export interface AdminConfigSnapshot {
-  values: ZenRemoteConfig
-  sources: Record<keyof ZenRemoteConfig, ConfigSource>
+  values: AugRemoteConfig
+  sources: Record<keyof AugRemoteConfig, ConfigSource>
 }
 
 export interface AdminHandlerOptions {
@@ -301,7 +301,7 @@ async function relay(options: AdminHandlerOptions, method: 'GET' | 'POST', path:
   responseJson(res, reply.status, reply.body)
 }
 
-function testPushPayload(lang: ZenRemoteConfig['lang']): { title: string; body: string; tag: string } {
+function testPushPayload(lang: AugRemoteConfig['lang']): { title: string; body: string; tag: string } {
   return { ...(lang === 'en' ? TEST_PUSH_COPY.en : TEST_PUSH_COPY.zh), tag: TEST_PUSH_TAG }
 }
 
@@ -309,7 +309,7 @@ function testPushPayload(lang: ZenRemoteConfig['lang']): { title: string; body: 
  * request — volatile row fields (serverName, idleHours, …) change without a
  * plugin restart, so an apply-time snapshot would go stale. */
 async function respondStatus(options: AdminHandlerOptions, req: IncomingMessage, res: ServerResponse): Promise<void> {
-  const viaGateway = req.headers['x-zen-remote-via'] !== undefined
+  const viaGateway = req.headers['x-aug-remote-via'] !== undefined
   const config = options.getConfig()
   let gateway: unknown = null
   let gatewayStatus: number | null = null
@@ -610,7 +610,7 @@ export function createAdminHandler(options: AdminHandlerOptions): AdminHandler {
         // surface (the consent toggles below it), so a request that arrived
         // through the gateway is refused — consent is granted on the server
         // machine, by its owner, period.
-        if (req.headers['x-zen-remote-via'] !== undefined) {
+        if (req.headers['x-aug-remote-via'] !== undefined) {
           responseJson(res, 403, {
             ok: false,
             error: { code: 'via-gateway', message: '插件桥设置只能在服务端本机操作' },
@@ -627,8 +627,8 @@ export function createAdminHandler(options: AdminHandlerOptions): AdminHandler {
         }
         // registry.list() arrives plugin-sorted; the map keeps that order.
         // PB-11: `adapted` marks the entries an ADAPTER stands in for —
-        // zen-remote-internal forwarding for a plugin that never registered
-        // anything — so the settings page can say「由 zen-remote 适配」.
+        // aug-remote-internal forwarding for a plugin that never registered
+        // anything — so the settings page can say「由 aug-remote 适配」.
         // Absent (a wiring that predates adapters) reads as none.
         const adapted = options.pluginBridge.adaptedPlugins?.() ?? new Set<string>()
         const plugins = options.pluginBridge.registry.list().map((declaration) => ({
@@ -650,7 +650,7 @@ export function createAdminHandler(options: AdminHandlerOptions): AdminHandler {
         // Wall 2, BEFORE same-origin: a forwarded remote request presents as
         // same-origin (the gateway rewrites Origin/Host), so the marker is
         // the only signal that says "this did not start on this machine".
-        if (req.headers['x-zen-remote-via'] !== undefined) {
+        if (req.headers['x-aug-remote-via'] !== undefined) {
           responseJson(res, 403, {
             ok: false,
             error: { code: 'via-gateway', message: '配对与设备管理只能在服务端本机操作' },

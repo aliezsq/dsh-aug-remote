@@ -1,4 +1,4 @@
-// dsh-zen-remote · 2.2.6 follow-up: dropped files become uploads in remote sessions
+// dsh-aug-remote · 2.2.6 follow-up: dropped files become uploads in remote sessions
 // (src/client/effects/host-path-bridge.ts)
 //
 // DSH's composer asks the desktop shell for a dropped file's absolute path and,

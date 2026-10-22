@@ -1,6 +1,6 @@
-# AGENTS.md — dsh-zen-remote
+# AGENTS.md — dsh-aug-remote
 
-单一 npm 包 `dsh-zen-remote`，DSH（DeepSeek Harness）的 bundle 插件。
+单一 npm 包 `dsh-aug-remote`，DSH（DeepSeek Harness）的 bundle 插件。
 一个包里有两半代码，但**对用户是一个插件**：文档、安装说明、README 都不要
 再按「两个包」叙述（2026-08-17 由 monorepo 的 `packages/gateway` +
 `packages/mobile-ui` 合并而来，包名 `dsh-mobile-pwa` 与
@@ -11,27 +11,27 @@
 | 路径 | 作用 |
 | --- | --- |
 | `package.json` | 单包声明：`dsh.bundle.patch` → `cordis.patch.yml`，`dsh.client` → `exports["./client"]` |
-| `cordis.patch.yml` | 组合层，**一行** insert（`dsh-zen-remote`），随包自带；网关与推送由主入口按角色加载，不再各占一行 |
-| `src/index.ts` → `lib/index.js` | 主入口（插件行 `dsh-zen-remote`）：读 `role`，host 就 `ctx.plugin()` 加载网关与推送子插件，并挂 host 路由（附件上传 / 客户端配置 / 分享导出 / 管理 / 子客户端 / 中继） |
+| `cordis.patch.yml` | 组合层，**一行** insert（`dsh-aug-remote`），随包自带；网关与推送由主入口按角色加载，不再各占一行 |
+| `src/index.ts` → `lib/index.js` | 主入口（插件行 `dsh-aug-remote`）：读 `role`，host 就 `ctx.plugin()` 加载网关与推送子插件，并挂 host 路由（附件上传 / 客户端配置 / 分享导出 / 管理 / 子客户端 / 中继） |
 | `src/config.ts` | 配置模型：四层回退（env > 插件行 > `lan-gate.config.json` > 默认值）、loader 的 `Config` schema（全 volatile）、`resolveRole` |
 | `src/http.ts` | host 路由共用的 JSON 响应封装与同源 POST 门 |
-| `src/admin-routes.ts` | 设置页管理后端 `/_dsh/zen-remote/admin/*`：代调网关本机 API（配对 / 设备 / 测试推送）+ 共享开关 |
-| `src/client-routes.ts` | 子客户端路由 `/_dsh/zen-remote/client/*`：remote-status（两角色都挂，host 只应答这一条、其余 404）、配对代理、设置页诊断、plain-HTTP 转发 `client/http/*`（改动摘要 / diff） |
+| `src/admin-routes.ts` | 设置页管理后端 `/_dsh/aug-remote/admin/*`：代调网关本机 API（配对 / 设备 / 测试推送）+ 共享开关 |
+| `src/client-routes.ts` | 子客户端路由 `/_dsh/aug-remote/client/*`：remote-status（两角色都挂，host 只应答这一条、其余 404）、配对代理、设置页诊断、plain-HTTP 转发 `client/http/*`（改动摘要 / diff） |
 | `src/client-pairing.ts` | 子客户端配对纯逻辑：服务端地址归一化（http 仅限内网段）、claim/探针结果分类 |
-| `src/share-store.ts` | 共享会话表（`~/.dsh/zen-remote-shares.json`，持久化，重启恢复），中继访问控制的事实来源 |
+| `src/share-store.ts` | 共享会话表（`~/.dsh/aug-remote-shares.json`，持久化，重启恢复），中继访问控制的事实来源 |
 | `src/activity.ts` | 会话活动统计 + 闲置休眠扫描（`idleHours`，运行中/等待中不计时） |
 | `src/share-ops.ts` | `agent/created` 的自动共享 / 分叉跟随 / busy 恢复 |
 | `src/share-export.ts` | 分享图路由 `GET /_dsh/mobile-nav/share-export`（完整日志折叠人类转写） |
-| `src/relay-server.ts` | 服务端中继路由 `/_dsh/zen-remote/relay/*`：ping / handshake / invoke / NDJSON stream / event-result / `v1/http`（改动摘要 / diff 的 plain-HTTP 直通，进程内交宿主 `/api` 共享 handler）/ unshare |
+| `src/relay-server.ts` | 服务端中继路由 `/_dsh/aug-remote/relay/*`：ping / handshake / invoke / NDJSON stream / event-result / `v1/http`（改动摘要 / diff 的 plain-HTTP 直通，进程内交宿主 `/api` 共享 handler）/ unshare |
 | `src/relay-access.ts` | 中继的按方法登记访问控制表（服务端那一张；`v1/http` 的按路由登记表也在这里） |
 | `src/relay-filter.ts` | 全局流与全局列表的输出过滤（`workspace/follow` / `session/control` / `session/list` / @ 引用候选行） |
 | `src/session-reference.ts` | 两端共用的 `dsh-session:` 引用编解码与「可注入文本」扫描规则（prompt content、排队消息 edit、`commands/execute` 全部字符串）：服务端照它校验、子客户端照它改写，同一份规则防两端漂移 |
 | `src/relay-client.ts` | 子客户端中继客户端：握手、接口指纹比对、退避重连、吊销识别 |
 | `src/intercept.ts` | 子客户端本机拦截：包装 `typertGateway`，远程会话调用改走中继、虚拟 id 改写、面板判定（客户端那张字段表也在这里） |
 | `src/intercept-shape.ts` | 被包装方法的形态检测，不符即拒绝安装远程拦截（本地行为不受影响） |
-| `src/plugin-bridge.ts` | 插件桥纯逻辑（PB-1）：桥接声明校验/规范化与 16 位摘要、`zenRemote` 注册表、两端比对 `compareBridges`；不 import DSH、不碰 I/O |
+| `src/plugin-bridge.ts` | 插件桥纯逻辑（PB-1）：桥接声明校验/规范化与 16 位摘要、`augRemote` 注册表、两端比对 `compareBridges`；不 import DSH、不碰 I/O |
 | `src/plugin-loopback.ts` | 插件桥回环执行器（PB-3）：本机回环 GET 插件路由，token 换 cookie（401 重换一次），cookie 只存内存；https 仅对字面 127.0.0.1 放宽证书校验 |
-| `src/plugin-route-intercept.ts` | 子客户端改道（PB-4）：包装宿主 webServer 的 `match`，声明命中的虚拟 id 请求改走 `relay.pluginRequest`；未桥接一律统一 503（`x-zen-remote: unbridged`），绝不落本机插件 |
+| `src/plugin-route-intercept.ts` | 子客户端改道（PB-4）：包装宿主 webServer 的 `match`，声明命中的虚拟 id 请求改走 `relay.pluginRequest`；未桥接一律统一 503（`x-aug-remote: unbridged`），绝不落本机插件 |
 | `src/plugin-adapter-core.ts` | 适配器框架核心（PB-11）：适配器路由/定位器的校验、三种定位（query/路径段/JSON 体）的「远程/本地/混合」判定与双向改写、适配器摘要与让位判定；纯逻辑，框架两半只 import 这里 |
 | `src/adapters/` | 适配器目录（PB-11）：`index.ts` 只导出 `ADAPTERS` 数组（本单为空，PB-12 加第一个），`types.ts` 放适配器作者接口，实现各占一个子目录；**除 `src/index.ts` 接线外任何文件不得 import 此目录**，适配器实现只可 import `types.ts` 与纯工具 |
 | `src/client-data/plugin-bridge.ts` | 设置页纯函数（PB-5）：桥接状态 → 文案键、整机数据同意表的切换（只动一键）；浏览器半边，不 import 主包 |
@@ -49,7 +49,7 @@
 | `pwa/**` | manifest / service worker / 注入脚本 / 手势 / 壳级 CSS / 图标 |
 | `test/*.test.cjs` | 网关侧测试（真子进程 + mock 上游）+ 中继端到端（`relay-e2e.test.cjs`）+ 纯逻辑导入测试 |
 | `scripts/check-*.mjs` | 界面侧自检（纯 `node:assert`，靠 Node ≥23.6 类型剥离直接 import `.ts`） |
-| `scripts/build-client.mjs` | client 打包器（内联相对模块 → `__ModuleLoader__.load({id:"dsh-zen-remote"})`） |
+| `scripts/build-client.mjs` | client 打包器（内联相对模块 → `__ModuleLoader__.load({id:"dsh-aug-remote"})`） |
 | `docs/**` | 深度文档，见下 |
 
 ## 命令

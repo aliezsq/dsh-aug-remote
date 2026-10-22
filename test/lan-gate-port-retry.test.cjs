@@ -1,4 +1,4 @@
-/* dsh-zen-remote · T17b/T17b-fix gateway EADDRINUSE same-port retry
+/* dsh-aug-remote · T17b/T17b-fix gateway EADDRINUSE same-port retry
  *
  * A row reload (a settings save touching a restart-required field) asks the
  * OLD gateway child to exit and spawns the new one immediately — so the new

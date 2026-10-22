@@ -285,7 +285,7 @@ test('gateway: injects manifest link, PWA bootstrap & app.css into HTML (local)'
     assert.ok(page.body.includes('window.__DSH_PWA__'), 'PWA bootstrap present')
     assert.match(page.body, /window\.__DSH_PWA__=\{vapid:"[A-Za-z0-9_-]{20,}",lang:"(zh|en)"\}/, 'real VAPID public key and resolved page language injected')
     // T13: the admin entry chip is gone — administration moved to the
-    // dsh-zen-remote settings page inside DSH's Plugins page.
+    // dsh-aug-remote settings page inside DSH's Plugins page.
     assert.ok(!page.body.includes('href="/lan-gate/admin"'), 'no admin entry chip in injected HTML anymore')
   } finally { await stop() }
 })

@@ -1,4 +1,4 @@
-/* dsh-zen-remote · role wiring (src/index.ts apply + src/config.ts resolveConfig)
+/* dsh-aug-remote · role wiring (src/index.ts apply + src/config.ts resolveConfig)
  *
  * 2.0.0 collapsed the bundle patch from three plugin rows to one: the main
  * entry reads the row's `role` knob and mounts the gateway and push halves
@@ -31,7 +31,7 @@ const PATCH_PATH = path.join(__dirname, '..', 'cordis.patch.yml')
 // Hermetic resolution: an empty DSH_HOME means readFileConfig() finds nothing
 // (the directory is never written to), so every expected value below comes
 // from the layer the test itself provided.
-const TEMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-role-wiring-'))
+const TEMP_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-role-wiring-'))
 process.env.DSH_HOME = TEMP_HOME
 process.on('exit', () => { try { fs.rmSync(TEMP_HOME, { recursive: true, force: true }) } catch { /* best effort */ } })
 
@@ -58,7 +58,7 @@ test.after(() => {
  * tests do. Neither sub-plugin is executed — the namespace objects are only
  * inspected. The `on` record and the effect returns are what the T22c
  * wiring test asserts on; `warns` captures logger.warn calls (the T33a-fix
- * listener-swallow test reads them); `provides` is what the PB-1 zenRemote
+ * listener-swallow test reads them); `provides` is what the PB-1 augRemote
  * test reads. */
 function makeCtx() {
   const calls = []
@@ -120,8 +120,8 @@ test('apply loads both sub-plugins with the resolved values on the default role'
   index.apply(ctx, config)
   assert.equal(calls.length, 2)
   // Same order as the rows used to sit in the bundle patch: gateway, push.
-  assert.equal(calls[0].module.name, 'dsh-zen-remote-gateway')
-  assert.equal(calls[1].module.name, 'dsh-zen-remote-push')
+  assert.equal(calls[0].module.name, 'dsh-aug-remote-gateway')
+  assert.equal(calls[1].module.name, 'dsh-aug-remote-push')
   // T22a: the gateway additionally carries the per-apply relay secret, so the
   // two configs are no longer the same object — push sees the identical
   // resolved values MINUS the secret (omitted via destructuring so the key
@@ -146,8 +146,8 @@ test("apply loads both sub-plugins for role 'host'", async () => {
   const config = { role: 'host' }
   index.apply(ctx, config)
   assert.equal(calls.length, 2)
-  assert.equal(calls[0].module.name, 'dsh-zen-remote-gateway')
-  assert.equal(calls[1].module.name, 'dsh-zen-remote-push')
+  assert.equal(calls[0].module.name, 'dsh-aug-remote-gateway')
+  assert.equal(calls[1].module.name, 'dsh-aug-remote-push')
   const { relaySecret: _hostSecret, ...hostGatewayValues } = calls[0].config
   assert.deepEqual(hostGatewayValues, calls[1].config)
   assert.equal(calls[0].config.role, 'host')
@@ -166,8 +166,8 @@ test("invalid role values fall back to the host role", async () => {
     const { ctx, calls } = makeCtx()
     index.apply(ctx, { role })
     assert.equal(calls.length, 2, `role ${JSON.stringify(role)} must mean host`)
-    assert.equal(calls[0].module.name, 'dsh-zen-remote-gateway')
-    assert.equal(calls[1].module.name, 'dsh-zen-remote-push')
+    assert.equal(calls[0].module.name, 'dsh-aug-remote-gateway')
+    assert.equal(calls[1].module.name, 'dsh-aug-remote-push')
   }
 })
 
@@ -212,7 +212,7 @@ test("role 'client' mounts all three routes through a real inject and never call
   // well — the three phone routes plus the client prefix route.
   assert.deepEqual(
     routes.map((r) => r.path).sort(),
-    [index.UPLOAD_ROUTE, index.CLIENT_CONFIG_ROUTE, share.SHARE_EXPORT_ROUTE, '/_dsh/zen-remote/client'].sort(),
+    [index.UPLOAD_ROUTE, index.CLIENT_CONFIG_ROUTE, share.SHARE_EXPORT_ROUTE, '/_dsh/aug-remote/client'].sort(),
   )
 
   // Same wiring under the host role: the routes AND both sub-plugins. The
@@ -239,7 +239,7 @@ test("role 'client' mounts all three routes through a real inject and never call
 
 test('admin routes register on the host role only', async () => {
   const index = await import(INDEX_URL)
-  const PREFIX = '/_dsh/zen-remote/admin'
+  const PREFIX = '/_dsh/aug-remote/admin'
 
   // A fake context whose inject EXECUTES whenever every service exists —
   // including `connection`, which only the admin routes (T14) need. The
@@ -276,8 +276,8 @@ test('admin routes register on the host role only', async () => {
 
 test('T16: client routes register on the client role (the host mounts the prefix for remote-status ONLY)', async () => {
   const index = await import(INDEX_URL)
-  const CLIENT_PREFIX = '/_dsh/zen-remote/client'
-  const ADMIN_PREFIX = '/_dsh/zen-remote/admin'
+  const CLIENT_PREFIX = '/_dsh/aug-remote/client'
+  const ADMIN_PREFIX = '/_dsh/aug-remote/admin'
 
   // Same executing-inject fake as the admin test above: the client routes
   // need webServer + connection, so this is the composition where the role
@@ -373,20 +373,20 @@ test('the admin handler resolves config per request, volatile fields included', 
   }
   index.apply(ctx, row)
 
-  const adminRoute = routes.find((r) => String(r.path).startsWith('/_dsh/zen-remote/admin'))
+  const adminRoute = routes.find((r) => String(r.path).startsWith('/_dsh/aug-remote/admin'))
   assert.ok(adminRoute, 'the host role registers the admin route')
   const server = http.createServer((req, res) => { void adminRoute.handler(req, res) })
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
   try {
     const port = server.address().port
-    const first = JSON.parse((await request(port, { method: 'GET', path: '/_dsh/zen-remote/admin/status' })).body)
+    const first = JSON.parse((await request(port, { method: 'GET', path: '/_dsh/aug-remote/admin/status' })).body)
     assert.equal(first.config.values.serverName, 'Name-Before')
 
     // Same process, same handler, same row object: only the volatile getter's
     // return value changed. An apply-time snapshot would keep answering the
     // old name (T14-fix item 4).
     serverName = 'Name-After'
-    const second = JSON.parse((await request(port, { method: 'GET', path: '/_dsh/zen-remote/admin/status' })).body)
+    const second = JSON.parse((await request(port, { method: 'GET', path: '/_dsh/aug-remote/admin/status' })).body)
     assert.equal(second.config.values.serverName, 'Name-After', 'config must be resolved per request')
     assert.equal(second.config.sources.serverName, 'row')
   } finally {
@@ -430,16 +430,16 @@ test('T22a: the host role registers the relay prefix route and mints a fresh 64-
   // prefix.
   const relay = first.routes.find((r) => r.path === RELAY_PREFIX)
   assert.ok(relay, 'the relay route is registered as a prefix route')
-  assert.equal(relay.path, '/_dsh/zen-remote/relay')
+  assert.equal(relay.path, '/_dsh/aug-remote/relay')
   assert.equal(typeof relay.handler, 'function')
-  const gwConfig = first.plugins.find((c) => c.module.name === 'dsh-zen-remote-gateway').config
+  const gwConfig = first.plugins.find((c) => c.module.name === 'dsh-aug-remote-gateway').config
   assert.match(gwConfig.relaySecret, /^[0-9a-f]{64}$/, 'the gateway sub-plugin carries a 64-hex relaySecret')
-  const pushConfig = first.plugins.find((c) => c.module.name === 'dsh-zen-remote-push').config
+  const pushConfig = first.plugins.find((c) => c.module.name === 'dsh-aug-remote-push').config
   assert.equal(pushConfig.relaySecret, undefined, 'the push half never sees the secret')
 
   const second = { plugins: [], routes: [] }
   index.apply(makeWiringCtx(second), {})
-  const secondSecret = second.plugins.find((c) => c.module.name === 'dsh-zen-remote-gateway').config.relaySecret
+  const secondSecret = second.plugins.find((c) => c.module.name === 'dsh-aug-remote-gateway').config.relaySecret
   assert.match(secondSecret, /^[0-9a-f]{64}$/)
   assert.notEqual(secondSecret, gwConfig.relaySecret, 'every apply mints a NEW secret')
 })
@@ -454,10 +454,10 @@ test("T22a: role 'client' registers no relay route even with typertGateway avail
   // (T16) — the phone routes plus that prefix, still no relay anywhere.
   assert.deepEqual(
     record.routes.map((r) => r.path).sort(),
-    [index.UPLOAD_ROUTE, index.CLIENT_CONFIG_ROUTE, share.SHARE_EXPORT_ROUTE, '/_dsh/zen-remote/client'].sort(),
+    [index.UPLOAD_ROUTE, index.CLIENT_CONFIG_ROUTE, share.SHARE_EXPORT_ROUTE, '/_dsh/aug-remote/client'].sort(),
     'exactly the phone routes and the client prefix — no relay prefix',
   )
-  assert.ok(!record.routes.some((r) => r.path === '/_dsh/zen-remote/relay'), 'no relay route on the client role')
+  assert.ok(!record.routes.some((r) => r.path === '/_dsh/aug-remote/relay'), 'no relay route on the client role')
 })
 
 // A minimal ServerResponse stand-in: responseJson only sets headers, writes
@@ -480,17 +480,17 @@ test('T22a-fix: the minted relaySecret opens the registered relay handler, a wro
   index.apply(makeWiringCtx(record), {})
   // By path: T17 gave this fake a connection service, so the admin prefix
   // registers alongside the relay's.
-  const relayRoute = record.routes.find((r) => r.path === '/_dsh/zen-remote/relay')
-  const secret = record.plugins.find((c) => c.module.name === 'dsh-zen-remote-gateway').config.relaySecret
+  const relayRoute = record.routes.find((r) => r.path === '/_dsh/aug-remote/relay')
+  const secret = record.plugins.find((c) => c.module.name === 'dsh-aug-remote-gateway').config.relaySecret
   const call = (requestSecret) => {
     const headers = {
-      'x-zen-remote-via': 'gateway',
-      'x-zen-remote-role': 'desktop-client',
-      'x-zen-remote-device': 'dev-1',
+      'x-aug-remote-via': 'gateway',
+      'x-aug-remote-role': 'desktop-client',
+      'x-aug-remote-device': 'dev-1',
     }
-    if (requestSecret !== undefined) headers['x-zen-remote-secret'] = requestSecret
+    if (requestSecret !== undefined) headers['x-aug-remote-secret'] = requestSecret
     const res = fakeRes()
-    return relayRoute.handler({ method: 'GET', url: '/_dsh/zen-remote/relay/ping', headers }, res).then(() => res)
+    return relayRoute.handler({ method: 'GET', url: '/_dsh/aug-remote/relay/ping', headers }, res).then(() => res)
   }
 
   const ok = await call(secret)
@@ -561,11 +561,11 @@ test('T22c + T17: the host role subscribes session/event and starts sweeper + re
 
 test('T22c-fix: the captured session/event listener refreshes the shared table and ignores id-less sessions', async () => {
   const index = await import(INDEX_URL)
-  // The store is born inside apply() reading <DSH_HOME>/zen-remote-shares.json,
+  // The store is born inside apply() reading <DSH_HOME>/aug-remote-shares.json,
   // so the test pre-seeds session 'x' with an hour-old stamp BEFORE apply and
   // watches that file afterwards: the first touch after a load is written
   // through immediately (share-store's 60s throttle only caps REPEAT writes).
-  const sharesFile = path.join(TEMP_HOME, 'zen-remote-shares.json')
+  const sharesFile = path.join(TEMP_HOME, 'aug-remote-shares.json')
   const oldStamp = Date.now() - 3_600_000
   fs.writeFileSync(sharesFile, JSON.stringify({
     version: 1,
@@ -594,7 +594,7 @@ test('T22c-fix: the captured session/event listener refreshes the shared table a
 
 test('T33a: the host role restores busy on startup, auto-shares fresh top-level sessions, follows forks, and skips children; the client role does none of it', async () => {
   const index = await import(INDEX_URL)
-  const sharesFile = path.join(TEMP_HOME, 'zen-remote-shares.json')
+  const sharesFile = path.join(TEMP_HOME, 'aug-remote-shares.json')
 
   // A wiring ctx whose inject EXECUTES whenever every service exists — the
   // admin routes need connection, the busy restore needs agents, the relay
@@ -655,10 +655,10 @@ test('T33a: the host role restores busy on startup, auto-shares fresh top-level 
   index.apply(ctx, { autoShareNewSessions: true })
 
   // Startup busy restore: the running one is busy again, the idle one is not.
-  const adminRoute = routes.find((r) => String(r.path).startsWith('/_dsh/zen-remote/admin'))
+  const adminRoute = routes.find((r) => String(r.path).startsWith('/_dsh/aug-remote/admin'))
   assert.ok(adminRoute, 'the host role registered the admin route carrying the shares surface')
   const res = { status: 0, body: '', setHeader() {}, writeHead(code) { this.status = code }, end(bytes) { if (bytes !== undefined) this.body = bytes.toString() } }
-  await adminRoute.handler({ method: 'GET', url: '/_dsh/zen-remote/admin/shares', headers: {} }, res)
+  await adminRoute.handler({ method: 'GET', url: '/_dsh/aug-remote/admin/shares', headers: {} }, res)
   assert.equal(res.status, 200)
   const listed = JSON.parse(res.body)
   assert.equal(listed.ok, true)
@@ -674,25 +674,25 @@ test('T33a: the host role restores busy on startup, auto-shares fresh top-level 
   // and every shares request died in a 500.
   const postRes = { status: 0, body: '', setHeader() {}, writeHead(code) { this.status = code }, end(bytes) { if (bytes !== undefined) this.body = bytes.toString() } }
   await adminRoute.handler(
-    jsonReq('POST', '/_dsh/zen-remote/admin/shares', { 'sec-fetch-site': 'same-origin' }, { action: 'share', sessionId: 'posted-1' }),
+    jsonReq('POST', '/_dsh/aug-remote/admin/shares', { 'sec-fetch-site': 'same-origin' }, { action: 'share', sessionId: 'posted-1' }),
     postRes,
   )
   assert.equal(postRes.status, 200, 'POST share survives the tight context (reflect.get lookup)')
   assert.equal(JSON.parse(postRes.body).ok, true)
   assert.ok(JSON.parse(fs.readFileSync(sharesFile, 'utf8')).sessions['posted-1'], 'the posted session entered the table')
   const postListed = { status: 0, body: '', setHeader() {}, writeHead(code) { this.status = code }, end(bytes) { if (bytes !== undefined) this.body = bytes.toString() } }
-  await adminRoute.handler({ method: 'GET', url: '/_dsh/zen-remote/admin/shares', headers: {} }, postListed)
+  await adminRoute.handler({ method: 'GET', url: '/_dsh/aug-remote/admin/shares', headers: {} }, postListed)
   assert.equal(JSON.parse(postListed.body).shares.some((s) => s.sessionId === 'posted-1'), true, 'GET shares (non-empty table) works end to end')
 
   // Viewer counts (T33a2): the admin route reads them through the LIVE relay
   // handler — the same object the relay prefix registered. No relay stream is
   // open here, so everything answers 0; stubbing the handler's viewerCount
   // (what T22b drives when a stream opens) shows up in the next GET.
-  const relayRoute = routes.find((r) => r.path === '/_dsh/zen-remote/relay')
+  const relayRoute = routes.find((r) => r.path === '/_dsh/aug-remote/relay')
   assert.ok(relayRoute, 'the host role registered the relay prefix in this composition too')
   const fetchShares = async () => {
     const r = { status: 0, body: '', setHeader() {}, writeHead(code) { this.status = code }, end(bytes) { if (bytes !== undefined) this.body = bytes.toString() } }
-    await adminRoute.handler({ method: 'GET', url: '/_dsh/zen-remote/admin/shares', headers: {} }, r)
+    await adminRoute.handler({ method: 'GET', url: '/_dsh/aug-remote/admin/shares', headers: {} }, r)
     return JSON.parse(r.body)
   }
   assert.equal((await fetchShares()).shares.find((s) => s.sessionId === 'live-1').viewers, 0, 'no relay stream, zero viewers')
@@ -745,14 +745,14 @@ test('T33a: the host role restores busy on startup, auto-shares fresh top-level 
   const client = makeFullCtx(clientRoutes, [])
   index.apply(client.ctx, { role: 'client' })
   assert.equal(client.listeners.filter((l) => l.event === 'agent/created').length, 0, "the client role never subscribes agent/created")
-  assert.equal(clientRoutes.filter((r) => String(r.path).startsWith('/_dsh/zen-remote/admin')).length, 0, 'no admin prefix on the client role')
+  assert.equal(clientRoutes.filter((r) => String(r.path).startsWith('/_dsh/aug-remote/admin')).length, 0, 'no admin prefix on the client role')
 })
 
 test('T33a-fix: a throwing agent/created listener is swallowed and warned, never propagated', async () => {
   const index = await import(INDEX_URL)
   // The feed dispatches SERIALLY: a rejection rolls the whole session
   // creation back, so the listener must contain its own failures.
-  fs.rmSync(path.join(TEMP_HOME, 'zen-remote-shares.json'), { force: true })
+  fs.rmSync(path.join(TEMP_HOME, 'aug-remote-shares.json'), { force: true })
   const { ctx, listeners, warns } = makeCtx()
   index.apply(ctx, { autoShareNewSessions: true })
   const created = listeners.find((l) => l.event === 'agent/created').listener
@@ -774,22 +774,22 @@ test('T33a-fix: a throwing agent/created listener is swallowed and warned, never
     source: 'startup',
   })
   assert.ok(
-    JSON.parse(fs.readFileSync(path.join(TEMP_HOME, 'zen-remote-shares.json'), 'utf8')).sessions['after-boom'],
+    JSON.parse(fs.readFileSync(path.join(TEMP_HOME, 'aug-remote-shares.json'), 'utf8')).sessions['after-boom'],
     'the listener keeps working after a swallowed failure',
   )
 })
 
-// ---- PB-1: the zenRemote service ------------------------------------------------
+// ---- PB-1: the augRemote service ------------------------------------------------
 
-test('PB-1: BOTH roles provide a zenRemote service whose bridge() registers, validates and disposes', async () => {
+test('PB-1: BOTH roles provide a augRemote service whose bridge() registers, validates and disposes', async () => {
   const index = await import(INDEX_URL)
   for (const role of ['host', 'client']) {
     const config = role === 'host' ? {} : { role: 'client' }
     const { ctx, provides, effects } = makeCtx()
     index.apply(ctx, config)
 
-    const provided = provides.find((p) => p.name === 'zenRemote')
-    assert.ok(provided, `the ${role} role provides the zenRemote service`)
+    const provided = provides.find((p) => p.name === 'augRemote')
+    assert.ok(provided, `the ${role} role provides the augRemote service`)
     assert.equal(typeof provided.value.bridge, 'function', 'the service exposes bridge()')
     assert.equal(provides.length, 1, 'exactly one service is provided')
 
@@ -937,7 +937,7 @@ test('T17: the upload and share-export routes stay unmounted without a connectio
 
 test('T17: the upload route refuses an unadmitted request and passes an admitted one', async () => {
   const index = await import(INDEX_URL)
-  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-t17-upload-'))
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-t17-upload-'))
   try {
     for (const admission of [{ rejection: 401 }, { rejection: 403 }]) {
       const { ctx, routes } = ctxExecuting({
@@ -1076,5 +1076,5 @@ test('resolveRole normalizes to host or client', async () => {
 
 test('cordis.patch.yml carries exactly one insert row: the main entry', () => {
   const ids = [...fs.readFileSync(PATCH_PATH, 'utf8').matchAll(/^\s*-\s+id:\s*(\S+)\s*$/gm)].map((m) => m[1])
-  assert.deepEqual(ids, ['dsh-zen-remote'])
+  assert.deepEqual(ids, ['dsh-aug-remote'])
 })

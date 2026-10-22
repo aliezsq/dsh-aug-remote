@@ -17,7 +17,7 @@
  * (test/restart-watcher.test.cjs drives every tick from a fake clock, same
  * shape as startSweeper in src/activity.ts).
  */
-import type { ZenRemoteConfig } from './config.js';
+import type { AugRemoteConfig } from './config.js';
 export { RESTART_FIELDS } from './restart-fields.js';
 export type { RestartField } from './restart-fields.js';
 /**
@@ -29,7 +29,7 @@ export type { RestartField } from './restart-fields.js';
  * missing field and an undefined one are the same "not set".
  */
 export declare function restartKey(values: {
-    [K in keyof ZenRemoteConfig]?: unknown;
+    [K in keyof AugRemoteConfig]?: unknown;
 }): string;
 /** Duck-typed timer halves, exactly like src/activity.ts's sweeper: Node's
  * setInterval/clearInterval at runtime, fakes in tests. */
@@ -40,7 +40,7 @@ export interface RestartWatcherOptions {
      * (the baseline) and once per trigger. A throw is swallowed and retried on
      * the next trigger — the watcher must survive a transient resolution
      * failure. */
-    getValues: () => ZenRemoteConfig;
+    getValues: () => AugRemoteConfig;
     /** Called at most once, when the fingerprint diverges from the baseline.
      * After the call the watcher is done: it clears its own timer, so a slow
      * or failing reload can never trigger a second one (the reload itself

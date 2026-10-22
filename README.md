@@ -1,4 +1,4 @@
-<h1 align="center">dsh-zen-remote</h1>
+<h1 align="center">dsh-aug-remote</h1>
 <p align="center">One DeepSeek Harness plugin, two roles. The <b>host</b> turns DSH into a phone-reachable PWA (mobile UI, pairing gateway, lock-screen push) and shares chosen sessions to paired desktops. The <b>client</b> runs inside another DSH desktop app and puts the host's shared sessions right into its own sidebar — full history, live progress, messages, approvals, terminal, everything executes on the host.</p>
 
 > **This is a personal fork** of [KyoMio/dsh-zen-remote](https://github.com/KyoMio/dsh-zen-remote). It adds remote artifact download, relayed Office previews, host-materialized client-local file uploads and a 500 MiB upload cap. It is **not** the official plugin and is not endorsed by upstream. Install from this repository's Releases; see [NOTICE](NOTICE) and [FORK.md](FORK.md).
@@ -8,7 +8,7 @@
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0B7285?style=flat-square" alt="MIT"></a>
 <br>
 <img src="https://img.shields.io/badge/DeepSeek%20Harness-0.1.7%20%E2%80%93%200.2.x-4D6BFE?style=flat-square" alt="DeepSeek Harness 0.1.7 – 0.2.x">
-<img src="https://img.shields.io/node/v/dsh-zen-remote?style=flat-square&color=339933&logo=nodedotjs&logoColor=white" alt="Node">
+<img src="https://img.shields.io/node/v/dsh-aug-remote?style=flat-square&color=339933&logo=nodedotjs&logoColor=white" alt="Node">
 <img src="https://img.shields.io/badge/PWA-Web%20Push-5A0FC8?style=flat-square&logo=pwa&logoColor=white" alt="PWA + Web Push">
 <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript strict">
 </p>
@@ -72,7 +72,7 @@ What it can and cannot do: see [Features](#features) and [Known limitations](#kn
 
 ## Install
 
-**From the UI** (desktop app and web UI alike; the desktop app is how a 2.0 host actually runs): open the **Plugins** page in the sidebar → **Add plugin** → type `dsh-zen-remote` → click **Enable now** when the install finishes, then restart the desktop app (or `dsh web`).
+**From the UI** (desktop app and web UI alike; the desktop app is how a 2.0 host actually runs): open the **Plugins** page in the sidebar → **Add plugin** → type `dsh-aug-remote` → click **Enable now** when the install finishes, then restart the desktop app (or `dsh web`).
 
 **Web service from the command line** (host on a headless `dsh web` box, also where phone access still points):
 
@@ -81,9 +81,9 @@ dsh plugin --profile web add dsh-aug-remote
 # then restart dsh web
 ```
 
-> **Upgrading the plugin with HMR on:** remove dsh-zen-remote first, then install the new version (`dsh plugin --profile <name> remove dsh-aug-remote` → `add dsh-aug-remote`, or Uninstall → Add in the Plugins page); an in-place install over the running copy is not picked up cleanly.
+> **Upgrading the plugin with HMR on:** remove dsh-aug-remote first, then install the new version (`dsh plugin --profile <name> remove dsh-aug-remote` → `add dsh-aug-remote`, or Uninstall → Add in the Plugins page); an in-place install over the running copy is not picked up cleanly.
 
-> **DSH 0.2.1-alpha.3+:** `dsh --profile <name> --from-default-profile <template>` now *replaces* an existing custom profile with a fresh template copy, deleting its `dependencies` (including dsh-zen-remote) and user `cordis.patch.yml`. Back up `~/.dsh/profiles/<name>` first (e.g. `cp -a ~/.dsh/profiles/<name> ~/.dsh/profiles/<name>.bak-$(date +%Y%m%d%H%M%S)`), then re-add the plugin afterwards. Pairing/share state under `~/.dsh/*.json` is outside the profile and is not touched.
+> **DSH 0.2.1-alpha.3+:** `dsh --profile <name> --from-default-profile <template>` now *replaces* an existing custom profile with a fresh template copy, deleting its `dependencies` (including dsh-aug-remote) and user `cordis.patch.yml`. Back up `~/.dsh/profiles/<name>` first (e.g. `cp -a ~/.dsh/profiles/<name> ~/.dsh/profiles/<name>.bak-$(date +%Y%m%d%H%M%S)`), then re-add the plugin afterwards. Pairing/share state under `~/.dsh/*.json` is outside the profile and is not touched.
 
 `dsh plugin` requires `--profile` to name the profile to install into and errors out without it. The desktop app's `desktop` profile is managed exclusively by the app — the CLI refuses `--profile desktop` — so on the desktop app use the UI above.
 
@@ -93,7 +93,7 @@ dsh plugin --profile web add dsh-aug-remote
 // ~/.dsh/profiles/desktop/package.json
 {
   "dependencies": {
-    "dsh-aug-remote": "^2.4.3"        // for local development: "link:/path/to/dsh-aug-remote"
+    "dsh-aug-remote": "^2.5.0"        // for local development: "link:/path/to/dsh-aug-remote"
   }
 }
 ```
@@ -103,9 +103,9 @@ cd ~/.dsh/profiles/desktop && pnpm install
 # then restart the DSH desktop app (or dsh web)
 ```
 
-`pnpm install` only installs the package; it does not switch it on. Turn it on in the **Plugins** page, or append `"dsh-zen-remote"` to the end of the `dsh.profile.bundles` array in the same file (leave the existing entries alone). The UI and `dsh plugin` write that entry for you; a hand edit has to add it itself.
+`pnpm install` only installs the package; it does not switch it on. Turn it on in the **Plugins** page, or append `"dsh-aug-remote"` to the end of the `dsh.profile.bundles` array in the same file (leave the existing entries alone). The UI and `dsh plugin` write that entry for you; a hand edit has to add it itself.
 
-Either way there is exactly **one** bundle row to mount. Since 2.0.0 the composition layer is a single line — `dsh-zen-remote` — and the main entry loads the gateway and push sub-plugins itself, according to the role. Do **not** re-add the old `dsh-zen-remote-gateway` / `dsh-zen-remote-push` rows: the loader warns and skips them, and two gateway rows would mean two gateway processes fighting over port 3088.
+Either way there is exactly **one** bundle row to mount. Since 2.0.0 the composition layer is a single line — `dsh-aug-remote` — and the main entry loads the gateway and push sub-plugins itself, according to the role. Do **not** re-add the old `dsh-aug-remote-gateway` / `dsh-aug-remote-push` rows: the loader warns and skips them, and two gateway rows would mean two gateway processes fighting over port 3088.
 
 <details>
 <summary>Static mount / local development</summary>
@@ -114,7 +114,7 @@ Copy [`cordis.patch.yml.example`](cordis.patch.yml.example) into your profile's 
 
 </details>
 
-To uninstall: open dsh-zen-remote in the **Plugins** page and click **Uninstall**, then confirm; on the web service you can also run `dsh plugin --profile web remove dsh-zen-remote`; for a hand-edited install, delete it from the profile's `dependencies` and `dsh.profile.bundles`. Then restart. To also wipe pairing and share state, delete `~/.dsh/lan-gate-state.json`, `~/.dsh/lan-gate.config.json`, `~/.dsh/zen-remote-shares.json` and `~/.dsh/zen-remote-server.json` (the server id — once it is gone, paired clients see a brand-new server).
+To uninstall: open dsh-aug-remote in the **Plugins** page and click **Uninstall**, then confirm; on the web service you can also run `dsh plugin --profile web remove dsh-aug-remote`; for a hand-edited install, delete it from the profile's `dependencies` and `dsh.profile.bundles`. Then restart. To also wipe pairing and share state, delete `~/.dsh/lan-gate-state.json`, `~/.dsh/lan-gate.config.json`, `~/.dsh/aug-remote-shares.json` and `~/.dsh/aug-remote-server.json` (the server id — once it is gone, paired clients see a brand-new server).
 
 ---
 
@@ -122,11 +122,11 @@ To uninstall: open dsh-zen-remote in the **Plugins** page and click **Uninstall*
 
 One-time facts, in order of likelihood to bite:
 
-- **The three bundle rows collapse into one.** Old `dsh-zen-remote-gateway` / `dsh-zen-remote-push` rows left in a profile patch are warned about and skipped by the loader. Any `config:` you had written **on those old rows** no longer applies — move it onto the `dsh-zen-remote` row or, better, set it in the plugin settings page.
-- **If you hand-inserted a `dsh-zen-remote/dsh-push.mjs` line into a profile patch back in 1.0, remove it** — the main entry loads the push half by role now, and a leftover line loads push twice.
+- **The three bundle rows collapse into one.** Old `dsh-aug-remote-gateway` / `dsh-aug-remote-push` rows left in a profile patch are warned about and skipped by the loader. Any `config:` you had written **on those old rows** no longer applies — move it onto the `dsh-aug-remote` row or, better, set it in the plugin settings page.
+- **If you hand-inserted a `dsh-aug-remote/dsh-push.mjs` line into a profile patch back in 1.0, remove it** — the main entry loads the push half by role now, and a leftover line loads push twice.
 - **`~/.dsh/lan-gate.config.json` still works.** Nothing to migrate; its values show up in the settings page. Priority per field: environment variable > plugin row settings > `lan-gate.config.json` > built-in default. The file is never written or deleted by the plugin.
 - **Paired devices become Web 应用端 automatically** and keep working; no re-pairing.
-- **The admin page moved.** `/lan-gate/admin` is now just a notice pointing at the plugin settings page (it still 403s anything that is not a direct local connection). Pairing codes, device management, push test and sharing all live in the DSH Plugins page → dsh-zen-remote settings block.
+- **The admin page moved.** `/lan-gate/admin` is now just a notice pointing at the plugin settings page (it still 403s anything that is not a direct local connection). Pairing codes, device management, push test and sharing all live in the DSH Plugins page → dsh-aug-remote settings block.
 - With no configuration touched at all, the plugin comes up as a host and the gateway, push and phone UI behave exactly as 1.1.x did.
 
 ---
@@ -136,7 +136,7 @@ One-time facts, in order of likelihood to bite:
 Once installed, the mobile UI already works at `127.0.0.1:3080` on the machine itself. To reach it from outside: put your own TLS-terminating reverse proxy in front of the gateway, verify it with a 403 self-check, then pair devices. The full walkthroughs — nginx / Caddy / Cloudflare Tunnel / Lucky — live in [docs/remote-access.en.md](docs/remote-access.en.md). The short form:
 
 1. The gateway listens on `127.0.0.1:3088` only; a reverse proxy (nginx, Caddy, Cloudflare Tunnel, Lucky) terminates HTTPS and forwards to it. **Self-check**: from **mobile data** (not home Wi-Fi), open `https://your-domain/lan-gate/admin` — the correct result is a **403**. If you can see the notice page, your proxy is not forwarding `X-Forwarded-*` headers and public requests are being treated as local ones — fix that before continuing.
-2. Open the DSH Plugins page **on the host machine**, open the dsh-zen-remote settings block, pick the device role for the code you are about to mint, and generate an 8-character pairing code (valid 10 minutes, single use).
+2. Open the DSH Plugins page **on the host machine**, open the dsh-aug-remote settings block, pick the device role for the code you are about to mint, and generate an 8-character pairing code (valid 10 minutes, single use).
 3. On the phone, open your HTTPS domain and enter the code on the pairing page. Once paired you land in DSH; identity lives in a long-lived cookie. Use "Add to Home Screen" to install it as an app, grant notification permission, and the agent reaches your lock screen when it needs you.
 
 ---
@@ -189,7 +189,7 @@ Remote access is per session, with four toggle entries:
 
 ### Settings page walkthrough
 
-**Where it is**: in DSH, click 插件 (Plugins) in the left bar → click dsh-zen-remote in the plugin list → click dsh-zen-remote once more under 包含的组件 (components); the settings block is below.
+**Where it is**: in DSH, click 插件 (Plugins) in the left bar → click dsh-aug-remote in the plugin list → click dsh-aug-remote once more under 包含的组件 (components); the settings block is below.
 
 **Common controls**: 已覆盖 (overridden) at a field's top right means the value is saved in the plugin settings (overriding the config file or the default); 重置 (reset) falls back to the next layer. Click 保存 (save) at the bottom of the card when done. Fields that need a reload say so, and the plugin reloads itself after saving — no app restart.
 
@@ -223,7 +223,7 @@ Remote access is per session, with four toggle entries:
 
 ### Field reference
 
-Everything is edited in the DSH Plugins page → dsh-zen-remote settings block. Per field the first legal value wins in this order: **environment variable > plugin row settings > `~/.dsh/lan-gate.config.json` > default**. A value that fails its field's check (type, range, enum) makes that layer transparent. Saving a field that needs a gateway/push restart (`role`, `port`, `host`, `targetPort`, `rateLimit`, `trustedProxies`, `vapidSubject`, `lang`, and the push fields) reloads the plugin row automatically — no app restart required; everything else takes effect immediately.
+Everything is edited in the DSH Plugins page → dsh-aug-remote settings block. Per field the first legal value wins in this order: **environment variable > plugin row settings > `~/.dsh/lan-gate.config.json` > default**. A value that fails its field's check (type, range, enum) makes that layer transparent. Saving a field that needs a gateway/push restart (`role`, `port`, `host`, `targetPort`, `rateLimit`, `trustedProxies`, `vapidSubject`, `lang`, and the push fields) reloads the plugin row automatically — no app restart required; everything else takes effect immediately.
 
 Row fields (matching `src/config.ts`):
 
@@ -323,7 +323,7 @@ In depth: [interface](docs/interface.md) · [public access + relay protocol](doc
 
 Three layers, strictest first:
 
-1. **Relay protocol version** must match — in practice, **both ends need the same zen-remote version**. A 1.x server's gateway doesn't know the client's bearer token and answers its requests with the generic pairing wall, which the client reports as "token invalid (or the server's zen-remote is older than 2.0.0)". DSH versions may differ.
+1. **Relay protocol version** must match — in practice, **both ends need the same aug-remote version**. A 1.x server's gateway doesn't know the client's bearer token and answers its requests with the generic pairing wall, which the client reports as "token invalid (or the server's aug-remote is older than 2.0.0)". DSH versions may differ.
 2. **DSH interface fingerprints** decide the rest: both ends compute normalized fingerprints of the remote-interface groups the relay uses and compare them at handshake. Identical is fully compatible even when version strings differ; a difference connects anyway, annotates the remote group "（版本有差异）" (version differs), lists the differing groups in the settings diagnostics, and degrades only the affected panels.
 3. **Runtime degradation**: a forwarded call that fails parameter/result validation shows "incompatible with the server version" in that one panel and is recorded in the diagnostics — everything else keeps working.
 
@@ -346,8 +346,8 @@ What a paired device is trusted with, stated plainly:
 - "Export session" is disabled in a remote session (the menu item is hidden, and the backend refuses virtual session ids); the changes panel's **summary and diff do work** (relayed), while the entries that would pop a dialog on the server machine — "open", "reveal in Finder", "open in app", on the changes panel and deliverable cards alike — are hidden there.
 - The host truncates @-mention candidates to the **first 50 rows before** share-filtering: on a server with many sessions, a shared one may be missing from the candidate list (the reference check itself is unaffected — references you type out are still verified one by one).
 - A third-party plugin's own endpoints work in remote sessions only through the [plugin bridge](docs/plugin-bridge.md): cooperative plugins register themselves, third-party plugins are covered by built-in adapters. A plugin with neither has its panels degraded or hidden in remote sessions (its **tools** still run on the server, unaffected).
-- With [dsh-better-sidebar](https://github.com/omdsh-dev/DSH-better-sidebar) installed, remote sessions have TWO treatments: **0.25.0, 0.26.0, 0.26.1, 0.28.0-alpha.0 and 0.28.0** are bridged by zen-remote's built-in adapter — its file / git / task panels read and write the SERVER's data in a remote session (consent required, see the security boundary doc). Any OTHER version keeps the hide-local-surfaces treatment: its surfaces are hidden in remote sessions because they would read and write the **client machine's own** files; and because 0.19+ takes over the host's "Files" tab, an unbridged remote session has no sidebar file browser for now; file links in chat or deliverables open an empty right column in a remote session.
-- Both ends need the **same zen-remote version** (identical relay protocol version). DSH versions may differ; interface differences are annotated "（版本有差异）".
+- With [dsh-better-sidebar](https://github.com/omdsh-dev/DSH-better-sidebar) installed, remote sessions have TWO treatments: **0.25.0, 0.26.0, 0.26.1, 0.28.0-alpha.0 and 0.28.0** are bridged by aug-remote's built-in adapter — its file / git / task panels read and write the SERVER's data in a remote session (consent required, see the security boundary doc). Any OTHER version keeps the hide-local-surfaces treatment: its surfaces are hidden in remote sessions because they would read and write the **client machine's own** files; and because 0.19+ takes over the host's "Files" tab, an unbridged remote session has no sidebar file browser for now; file links in chat or deliverables open an empty right column in a remote session.
+- Both ends need the **same aug-remote version** (identical relay protocol version). DSH versions may differ; interface differences are annotated "（版本有差异）".
 
 ---
 
@@ -364,10 +364,10 @@ What a paired device is trusted with, stated plainly:
 ## Permissions and data
 
 - **Network**: the gateway listens on the local machine only (`127.0.0.1:3088` by default); what gets exposed is entirely up to your reverse proxy or tunnel. Push travels through the browser vendor's push service (aes128gcm end-to-end encrypted). The relay between a desktop client and the host runs over the same gateway; its authorization is re-checked per request server-side. The plugin itself reports nothing to any third party.
-- **Files**: attachment uploads are written only to `.dsh-uploads/` inside the current session's working directory; pairing state lives in `~/.dsh/lan-gate-state.json`, config in `~/.dsh/lan-gate.config.json`, the share table in `~/.dsh/zen-remote-shares.json`, the server id in `~/.dsh/zen-remote-server.json`.
+- **Files**: attachment uploads are written only to `.dsh-uploads/` inside the current session's working directory; pairing state lives in `~/.dsh/lan-gate-state.json`, config in `~/.dsh/lan-gate.config.json`, the share table in `~/.dsh/aug-remote-shares.json`, the server id in `~/.dsh/aug-remote-server.json`.
 - **Credentials**: no account or password is ever collected or stored; a device's identity is a random token this plugin issues itself (HttpOnly cookie for web devices, a secret row field for desktop clients), plus a per-load relay shared secret that never leaves the machine pair.
 
-Troubleshooting: runtime logs are in `~/.dsh/logs/web.log` (gateway and push lines are prefixed `[dsh-zen-remote-*]`; desktop builds print to the app console). Security issues: please report privately through GitHub Security Advisories rather than opening a public issue.
+Troubleshooting: runtime logs are in `~/.dsh/logs/web.log` (gateway and push lines are prefixed `[dsh-aug-remote-*]`; desktop builds print to the app console). Security issues: please report privately through GitHub Security Advisories rather than opening a public issue.
 
 ---
 
@@ -377,7 +377,7 @@ The mobile UI has specific adaptations for the plugins below. Every adaptation i
 
 | Plugin | What the mobile adaptation does | Version tested |
 | --- | --- | --- |
-| [dsh-better-sidebar](https://github.com/omdsh-dev/DSH-better-sidebar) | 0.19+: all its tabs live in DSH 0.1.5's native right sidebar, which the host takes full screen on a phone (padded clear of the notch / home indicator) — the session header keeps an entry button for it, the left-edge swipe-back closes it, and tapping an @-reference in the file tree closes it. ≤ 0.18 (own right panel, DSH < 0.1.5 only): full-width phone drawer with notch safe area and a centred close pill. **Plugin bridge**: **0.25.0, 0.26.0, 0.26.1, 0.28.0-alpha.0 and 0.28.0** are bridged by zen-remote’s built-in adapter — in remote sessions its file / git / task panels read and write the SERVER’s data (whole-machine data, per-plugin consent on the server’s settings page; that equals whole-disk access and git writes on the server, see the [security boundary](docs/remote-access.md)); any other version stays unbridged and keeps the hide-local-surfaces treatment | 0.19.1 (legacy rules: 0.15.0; adapter: 0.25.0, 0.26.0, 0.26.1, 0.28.0-alpha.0, 0.28.0) |
+| [dsh-better-sidebar](https://github.com/omdsh-dev/DSH-better-sidebar) | 0.19+: all its tabs live in DSH 0.1.5's native right sidebar, which the host takes full screen on a phone (padded clear of the notch / home indicator) — the session header keeps an entry button for it, the left-edge swipe-back closes it, and tapping an @-reference in the file tree closes it. ≤ 0.18 (own right panel, DSH < 0.1.5 only): full-width phone drawer with notch safe area and a centred close pill. **Plugin bridge**: **0.25.0, 0.26.0, 0.26.1, 0.28.0-alpha.0 and 0.28.0** are bridged by aug-remote’s built-in adapter — in remote sessions its file / git / task panels read and write the SERVER’s data (whole-machine data, per-plugin consent on the server’s settings page; that equals whole-disk access and git writes on the server, see the [security boundary](docs/remote-access.md)); any other version stays unbridged and keeps the hide-local-surfaces treatment | 0.19.1 (legacy rules: 0.15.0; adapter: 0.25.0, 0.26.0, 0.26.1, 0.28.0-alpha.0, 0.28.0) |
 | [@nanmicoder/dsh-agent-teams](https://github.com/NanmiCoder/dsh-agent-teams) | The AgentTeams activity overlay moves below the session header (its original position covered the header buttons) and hides itself on the session list; a subagent session keeps a tappable parent-session title in its header for jumping back | 0.1.9 |
 | [@ychris12138/dsh-usage-stats](https://github.com/Ychris12138/dsh-usage-stats) | Usage and balance entries fold into the home-screen chips row | 0.2.9 |
 | [@opendsh/dsh-plugin-scheduled-tasks](https://github.com/Ceelog/dsh-plugins) | The scheduled-tasks entry folds into the home-screen chips row | 0.2.3 |
@@ -386,11 +386,11 @@ The mobile UI has specific adaptations for the plugins below. Every adaptation i
 | [dsh-vision-toolkit](https://www.npmjs.com/package/@anionex/dsh-vision-toolkit) | Image Q&A / OCR, used with phone-side attachment upload | — |
 | [dsh-web-ui suite](https://www.npmjs.com/package/@linxin666/dsh-web-ui-all) | Inherits the compatibility rules from upstream dsh-web-mobile (file tree, width-capped centred preview overlay, and so on) | — |
 
-**Mixed versions** — the bridging decision is made per side: whether the plugin bridges at all follows the **server's** installed better-sidebar version (present in the adapter's version table + the owner's consent); what requests the UI sends follows the **client's own** version (the UI loads locally); and if the two ends run different zen-remote versions, the adapter digest comparison fails and the plugin falls back to the hidden treatment:
+**Mixed versions** — the bridging decision is made per side: whether the plugin bridges at all follows the **server's** installed better-sidebar version (present in the adapter's version table + the owner's consent); what requests the UI sends follows the **client's own** version (the UI loads locally); and if the two ends run different aug-remote versions, the adapter digest comparison fails and the plugin falls back to the hidden treatment:
 
-(Old zen-remote + server BS 0.25 + client BS 0.25 is the **currently released** combination — bridged as usual.)
+(Old aug-remote + server BS 0.25 + client BS 0.25 is the **currently released** combination — bridged as usual.)
 
-| Two-end zen-remote | Server BS | Client BS | Result |
+| Two-end aug-remote | Server BS | Client BS | Result |
 | --- | --- | --- | --- |
 | New (has the 0.26 adapter) | 0.26 | 0.26 | Fully bridged; every new feature works |
 | New | 0.25 | 0.25 | Bridged as before; behavior identical to the previous release |

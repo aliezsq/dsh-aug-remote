@@ -1,4 +1,4 @@
-// dsh-zen-remote · T41b browser fetch wrapper (src/client/remote-fetch.ts)
+// dsh-aug-remote · T41b browser fetch wrapper (src/client/remote-fetch.ts)
 //
 // The rewrite decision is a pure function, so it is driven directly — string
 // and URL inputs against a fake location, no DOM. The install/uninstall half

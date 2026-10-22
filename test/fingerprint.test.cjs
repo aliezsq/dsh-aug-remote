@@ -1,4 +1,4 @@
-/* dsh-zen-remote · interface fingerprints (src/fingerprint.ts, T42 + T42-fix)
+/* dsh-aug-remote · interface fingerprints (src/fingerprint.ts, T42 + T42-fix)
  *
  * The normalization is the spike's verified fp.mjs recipe (descriptors minus
  * sourceLocation, schemas projected to JSON Schema, keys sorted, sha256
@@ -155,7 +155,7 @@ test('fingerprintPackageFile: real dev closure hashes f:-prefixed; unresolvable 
  * embeds its root's name. `anchors` are passed host-first.
  */
 function makeFakeRoot(rootName) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), `dsh-zen-remote-fp-${rootName}-`))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), `dsh-aug-remote-fp-${rootName}-`))
   process.on('exit', () => { try { fs.rmSync(root, { recursive: true, force: true }) } catch { /* best effort */ } })
   const pkgDir = path.join(root, 'node_modules', '@deepseek-ai', 'dsh-api-remotes')
   fs.mkdirSync(path.join(pkgDir, 'lib'), { recursive: true })
@@ -212,7 +212,7 @@ test('defaultAnchors: a symlinked process entry resolves through to the real clo
   // The realpath needs a REAL target: create the entry file the symlink
   // points at (the npm CLI's entry exists too — it is what Node runs).
   fs.writeFileSync(path.join(real.root, 'entry.js'), '// anchor target\n')
-  const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-fp-bin-'))
+  const bin = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-fp-bin-'))
   process.on('exit', () => { try { fs.rmSync(bin, { recursive: true, force: true }) } catch { /* best effort */ } })
   const link = path.join(bin, 'dsh')
   fs.symlinkSync(path.join(real.root, 'entry.js'), link)

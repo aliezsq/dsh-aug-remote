@@ -1,4 +1,4 @@
-/* dsh-zen-remote · the relay's plugin forwarding route (PB-3)
+/* dsh-aug-remote · the relay's plugin forwarding route (PB-3)
  *
  * Boots createRelayHandler alone (the relay-server.test.cjs discipline) over
  * a REAL declaration registry (lib/plugin-bridge.js) and a loopback executor
@@ -23,15 +23,15 @@ const { createShareStore } = require('../lib/share-store.js')
 const { createBridgeRegistry, normalizeDeclaration } = require('../lib/plugin-bridge.js')
 const { createPluginLoopback } = require('../lib/plugin-loopback.js')
 
-const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-plugin-relay-'))
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-plugin-relay-'))
 process.on('exit', () => { try { fs.rmSync(ROOT, { recursive: true, force: true }) } catch { /* best effort */ } })
 
 const SECRET = 'a1b2c3d4'.repeat(8)
 const AUTH = {
-  'x-zen-remote-secret': SECRET,
-  'x-zen-remote-via': 'gateway',
-  'x-zen-remote-role': 'desktop-client',
-  'x-zen-remote-device': 'device-9',
+  'x-aug-remote-secret': SECRET,
+  'x-aug-remote-via': 'gateway',
+  'x-aug-remote-role': 'desktop-client',
+  'x-aug-remote-device': 'device-9',
 }
 
 /** The declaration both ends register, in its normalized (digest-carrying) form. */
@@ -161,7 +161,7 @@ async function makeWiring(name, { consent = {}, registryOverride, getTokenUrl, g
           'x-zr-plugin-digest': digest ?? declared.digest,
           'x-zr-path': zrPath,
           'x-zr-query': query,
-          ...(device !== undefined ? { 'x-zen-remote-device': device } : {}),
+          ...(device !== undefined ? { 'x-aug-remote-device': device } : {}),
           ...extra,
         }),
         ...(body !== undefined
@@ -172,7 +172,7 @@ async function makeWiring(name, { consent = {}, registryOverride, getTokenUrl, g
   }
 }
 
-const ROUTE = '/_dsh/zen-remote/relay/v1/plugin'
+const ROUTE = '/_dsh/aug-remote/relay/v1/plugin'
 
 test('PB-3: an unwired bridge answers 501 unsupported', async () => {
   const wiring = await makeWiring('unsupported', { omitBridge: true })
@@ -183,7 +183,7 @@ test('PB-3: an unwired bridge answers 501 unsupported', async () => {
   } finally { await wiring.stop() }
 })
 
-test('PB-3: the refusal codes each get their case, and every refusal carries the x-zen-remote-error header', async () => {
+test('PB-3: the refusal codes each get their case, and every refusal carries the x-aug-remote-error header', async () => {
   const wiring = await makeWiring('refusals')
   try {
     const cases = [
@@ -204,7 +204,7 @@ test('PB-3: the refusal codes each get their case, and every refusal carries the
       const res = await wiring.pluginFetch(ROUTE, overrides)
       assert.equal(res.status, status, `${code}: status`)
       assert.deepEqual(await res.json(), { ok: false, error: { code } }, `${code}: body`)
-      assert.equal(res.headers.get('x-zen-remote-error'), code, `${code}: marker header`)
+      assert.equal(res.headers.get('x-aug-remote-error'), code, `${code}: marker header`)
     }
 
     // Missing coordinate headers are a plain bad-request: no plugin name,
@@ -214,7 +214,7 @@ test('PB-3: the refusal codes each get their case, and every refusal carries the
       headers: { ...AUTH, 'x-zr-plugin-version': '1.0.0', 'x-zr-plugin-digest': normalizeDeclaration(DECLARATION_INPUT).digest, 'x-zr-path': '/panel/data', 'x-zr-query': 'sessionId=session-shared' },
     })
     assert.equal(noPlugin.status, 400)
-    assert.equal(noPlugin.headers.get('x-zen-remote-error'), 'bad-request')
+    assert.equal(noPlugin.headers.get('x-aug-remote-error'), 'bad-request')
 
     // A body is a protocol violation (the coordinates live in the headers).
     const withBody = await fetch(`http://127.0.0.1:${wiring._port}${ROUTE}`, {
@@ -223,7 +223,7 @@ test('PB-3: the refusal codes each get their case, and every refusal carries the
       body: '{"sneaky":true}',
     })
     assert.equal(withBody.status, 400)
-    assert.equal(withBody.headers.get('x-zen-remote-error'), 'bad-request')
+    assert.equal(withBody.headers.get('x-aug-remote-error'), 'bad-request')
   } finally { await wiring.stop() }
 })
 
@@ -306,7 +306,7 @@ test('PB-9 POST round-trip: the plugin receives the VERBATIM bytes and content t
       headers: { 'x-zr-method': 'DELETE' },
     })
     assert.equal(undeclared.status, 405)
-    assert.equal(undeclared.headers.get('x-zen-remote-error'), 'method-undeclared')
+    assert.equal(undeclared.headers.get('x-aug-remote-error'), 'method-undeclared')
     assert.equal(wiring.pluginServer.state.requests.length, before, 'the plugin saw nothing')
 
     // A route without `methods` forwards GET only: the default is still
@@ -328,7 +328,7 @@ test('PB-9 POST round-trip: the plugin receives the VERBATIM bytes and content t
       body: '{"sneaky":true}',
     })
     assert.equal(getWithBody.status, 400)
-    assert.equal(getWithBody.headers.get('x-zen-remote-error'), 'bad-request')
+    assert.equal(getWithBody.headers.get('x-aug-remote-error'), 'bad-request')
   } finally {
     wiring.pluginServer.releaseAll()
     await wiring.stop()
@@ -357,7 +357,7 @@ test('PB-9 body gates: a declared over-max content-length refuses 413 before for
       body: 'x'.repeat(1025),
     })
     assert.equal(pre.status, 413)
-    assert.equal(pre.headers.get('x-zen-remote-error'), 'body-too-large')
+    assert.equal(pre.headers.get('x-aug-remote-error'), 'body-too-large')
     assert.equal(wiring.pluginServer.state.requests.length, before, 'nothing reached the plugin')
 
     // Chunked body past the cap: NO content-length (a web-stream body rides
@@ -378,7 +378,7 @@ test('PB-9 body gates: a declared over-max content-length refuses 413 before for
       body: chunkInit,
     })
     assert.equal(chunked.status, 413)
-    assert.equal(chunked.headers.get('x-zen-remote-error'), 'body-too-large')
+    assert.equal(chunked.headers.get('x-aug-remote-error'), 'body-too-large')
     const writes = wiring.pluginServer.state.requests.filter((r) => r.url.startsWith('/panel/write'))
     // The 2000-byte body arrives as ONE chunk past the 1024 cap: the gate
     // trips before the loopback has written anything, so ZERO connection
@@ -420,7 +420,7 @@ test("PB-3-fix: a THROWN consent source reads as no consent — the server-scope
       headers: { ...AUTH, 'x-zr-plugin': 'test-panel', 'x-zr-plugin-version': '1.0.0', 'x-zr-plugin-digest': declared.digest, 'x-zr-path': '/panel/all', 'x-zr-query': 'sessionId=session-shared' },
     })
     assert.equal(res.status, 403)
-    assert.equal(res.headers.get('x-zen-remote-error'), 'consent-off', 'unknown consent is NO consent')
+    assert.equal(res.headers.get('x-aug-remote-error'), 'consent-off', 'unknown consent is NO consent')
     // The session-scoped route is untouched by the broken source.
     const sessionRoute = await fetch(`http://127.0.0.1:${port}${ROUTE}`, {
       method: 'POST',
@@ -451,7 +451,7 @@ test('PB-3: the per-device budget holds 8, refuses the 9th with busy, and recove
     assert.equal(wiring.pluginServer.state.requests.length - hitsBefore, 8, 'eight requests reached the plugin')
     const ninth = await wiring.pluginFetch(ROUTE, { zrPath: '/panel/hold', query: 'sessionId=session-shared&i=9' })
     assert.equal(ninth.status, 429)
-    assert.equal(ninth.headers.get('x-zen-remote-error'), 'busy')
+    assert.equal(ninth.headers.get('x-aug-remote-error'), 'busy')
     await ninth.text()
     // Another device is unaffected — the budget is per device.
     const otherDevice = await wiring.pluginFetch(ROUTE, { zrPath: '/panel/data', device: 'device-2' })
@@ -475,7 +475,7 @@ test('PB-3: a loopback-auth failure answers 502 loopback-auth; any other loopbac
     const res = await noToken.pluginFetch(ROUTE)
     assert.equal(res.status, 502)
     assert.deepEqual(await res.json(), { ok: false, error: { code: 'loopback-auth' } })
-    assert.equal(res.headers.get('x-zen-remote-error'), 'loopback-auth')
+    assert.equal(res.headers.get('x-aug-remote-error'), 'loopback-auth')
   } finally { await noToken.stop() }
 
   const deadTarget = await makeWiring('loopback-internal', {
@@ -485,7 +485,7 @@ test('PB-3: a loopback-auth failure answers 502 loopback-auth; any other loopbac
     const res = await deadTarget.pluginFetch(ROUTE)
     assert.equal(res.status, 502)
     assert.deepEqual(await res.json(), { ok: false, error: { code: 'internal' } })
-    assert.equal(res.headers.get('x-zen-remote-error'), 'internal')
+    assert.equal(res.headers.get('x-aug-remote-error'), 'internal')
   } finally { await deadTarget.stop() }
 })
 
@@ -498,7 +498,7 @@ test('PB-3: a streamed plugin answer crosses in order with its headers; a mid-st
     })
     assert.equal(res.status, 200)
     assert.equal(res.headers.get('content-type'), 'application/x-ndjson')
-    assert.equal(res.headers.get('x-zen-remote-error'), null, 'a success never carries the refusal marker')
+    assert.equal(res.headers.get('x-aug-remote-error'), null, 'a success never carries the refusal marker')
     const text = await res.text()
     assert.deepEqual(text.split('\n').filter(Boolean), ['{"n":1}', '{"n":2}', '{"n":3}'], 'the three frames arrive in wire order')
 
@@ -509,7 +509,7 @@ test('PB-3: a streamed plugin answer crosses in order with its headers; a mid-st
     const seen = wiring.pluginServer.state.requests.at(-1)
     assert.equal(seen.headers.accept, 'application/x-ndjson', 'accept passes through')
     assert.equal(seen.headers.range, 'bytes=0-', 'range passes through')
-    for (const forbidden of ['x-zen-remote-secret', 'authorization', 'x-zen-remote-device', 'x-zen-remote-via', 'x-zen-remote-role', 'x-zr-plugin', 'x-zr-plugin-version', 'x-zr-plugin-digest', 'x-zr-path', 'x-zr-query']) {
+    for (const forbidden of ['x-aug-remote-secret', 'authorization', 'x-aug-remote-device', 'x-aug-remote-via', 'x-aug-remote-role', 'x-zr-plugin', 'x-zr-plugin-version', 'x-zr-plugin-digest', 'x-zr-path', 'x-zr-query']) {
       assert.equal(seen.headers[forbidden], undefined, `${forbidden} must not reach the plugin`)
     }
 

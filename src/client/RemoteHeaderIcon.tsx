@@ -91,7 +91,7 @@ export function RemoteHeaderIcon({ sessionId, shares, useSessions, t }: RemoteHe
     <button
       type="button"
       className="zr-remote-toggle"
-      data-zen-remote="remote-toggle"
+      data-aug-remote="remote-toggle"
       data-state={description.state}
       title={description.remainingText}
       aria-label={description.remainingText}

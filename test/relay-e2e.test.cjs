@@ -1,4 +1,4 @@
-/* dsh-zen-remote · T23a relay end-to-end (relay client → real gateway child →
+/* dsh-aug-remote · T23a relay end-to-end (relay client → real gateway child →
  * createRelayHandler test server)
  *
  * The 2.0.0 relay seam end to end: ONLY the DSH service is fake. The
@@ -144,7 +144,7 @@ test.before(async () => {
 })
 test.after(async () => { if (proxy) await proxy.stop() })
 
-const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-relay-e2e-'))
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-relay-e2e-'))
 process.on('exit', () => { try { fs.rmSync(ROOT, { recursive: true, force: true }) } catch { /* best effort */ } })
 
 /** One controllable upstream stream: the test pushes frames, finishes it, or
@@ -1246,7 +1246,7 @@ test('e2e T34: the server idle-closes a session and the sub-client remote-status
     statusServer = http.createServer((req, res) => { void handler(req, res) })
     await new Promise((resolve) => statusServer.listen(0, '127.0.0.1', resolve))
     const statusPort = statusServer.address().port
-    const status = await fetch(`http://127.0.0.1:${statusPort}/_dsh/zen-remote/client/remote-status`)
+    const status = await fetch(`http://127.0.0.1:${statusPort}/_dsh/aug-remote/client/remote-status`)
     const body = await status.json()
     assert.equal(body.state, 'online')
     assert.equal(body.serverName, SERVER_NAME)
@@ -1257,7 +1257,7 @@ test('e2e T34: the server idle-closes a session and the sub-client remote-status
     // client → proxy → gateway child → relay route → share table.
     env.store.share('session-a')
     assert.equal(env.store.isShared('session-a'), true)
-    const close = await fetch(`http://127.0.0.1:${statusPort}/_dsh/zen-remote/client/unshare`, {
+    const close = await fetch(`http://127.0.0.1:${statusPort}/_dsh/aug-remote/client/unshare`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', origin: `http://127.0.0.1:${statusPort}` },
       body: JSON.stringify({ sessionId: virtual }),
@@ -1268,7 +1268,7 @@ test('e2e T34: the server idle-closes a session and the sub-client remote-status
 
     // A non-virtual id is refused before anything travels.
     env.store.share('session-a')
-    const bad = await fetch(`http://127.0.0.1:${statusPort}/_dsh/zen-remote/client/unshare`, {
+    const bad = await fetch(`http://127.0.0.1:${statusPort}/_dsh/aug-remote/client/unshare`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', origin: `http://127.0.0.1:${statusPort}` },
       body: JSON.stringify({ sessionId: 'session-a' }),
@@ -1473,7 +1473,7 @@ test('e2e T41b: the changes diff crosses the sub-client http route with the orig
     await new Promise((resolve) => clientServer.listen(0, '127.0.0.1', resolve))
     try {
       const virtual = toVirtual(info.serverId, 'session-a')
-      const url = `/_dsh/zen-remote/client/http/changes.diff?sessionId=${encodeURIComponent(virtual)}&seq=3&index=0`
+      const url = `/_dsh/aug-remote/client/http/changes.diff?sessionId=${encodeURIComponent(virtual)}&seq=3&index=0`
       const res = await fetch(`http://127.0.0.1:${clientServer.address().port}${url}`)
       assert.equal(res.status, 200)
       assert.deepEqual(await res.json(), DIFF)
@@ -1706,7 +1706,7 @@ test('e2e PB-3: a hand-written device POST to relay/v1/plugin crosses the gatewa
     // in the x-zr-* headers, no body.
     const res = await request(proxyPort, {
       method: 'POST',
-      path: '/_dsh/zen-remote/relay/v1/plugin',
+      path: '/_dsh/aug-remote/relay/v1/plugin',
       headers: {
         authorization: `Bearer ${env.deviceToken}`,
         accept: 'application/x-ndjson',
@@ -1719,7 +1719,7 @@ test('e2e PB-3: a hand-written device POST to relay/v1/plugin crosses the gatewa
     })
     assert.equal(res.status, 200, `the forward crosses the whole chain: ${res.body.slice(0, 200)}`)
     assert.equal(res.headers['content-type'], 'application/x-ndjson')
-    assert.equal(res.headers['x-zen-remote-error'], undefined, 'a success carries no refusal marker')
+    assert.equal(res.headers['x-aug-remote-error'], undefined, 'a success carries no refusal marker')
     assert.deepEqual(
       res.body.split('\n').filter(Boolean),
       ['e2e-frame-1', 'e2e-frame-2'],
@@ -1998,7 +1998,7 @@ test('e2e PB-4: the browser hits the local webServer, the wrap forwards over the
     consentBox.map = {}
     const unconsented = await fetch(`${base}/panel/all?sessionId=${encodeURIComponent(virtual)}`)
     assert.equal(unconsented.status, 503)
-    assert.equal(unconsented.headers.get('x-zen-remote'), 'unbridged')
+    assert.equal(unconsented.headers.get('x-aug-remote'), 'unbridged')
     assert.deepEqual(await unconsented.json(), {
       ok: false, error: { code: 'zr-plugin-unbridged', reason: 'consent-off', plugin: 'e2e-panel' },
     })

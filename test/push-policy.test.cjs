@@ -1,4 +1,4 @@
-/* dsh-zen-remote · notification-timing policy (dsh-push.mjs pure layer)
+/* dsh-aug-remote · notification-timing policy (dsh-push.mjs pure layer)
  *
  * The whole point of pulling the decision out into pure functions is that
  * push timing can be tested WITHOUT creating a DSH session or sending a
@@ -227,7 +227,7 @@ test('apply registers the standing prompt section, and survives a host without o
   }
   mod.apply(ctx)
   assert.strictEqual(sections.length, 1)
-  assert.strictEqual(sections[0].name, 'dsh-zen-remote-push')
+  assert.strictEqual(sections[0].name, 'dsh-aug-remote-push')
   assert.strictEqual(sections[0].order, 150)
   assert.strictEqual(sections[0].text, mod.PUSH_NOTIFY_SECTION)
 

@@ -1,4 +1,4 @@
-/* dsh-zen-remote · the plugin bridge's route interception (PB-4)
+/* dsh-aug-remote · the plugin bridge's route interception (PB-4)
  *
  * Drives the BUILT lib/plugin-route-intercept.js against a fake host
  * webServer: a REAL node:http server whose `handle` follows the host's own
@@ -9,7 +9,7 @@
  * on a declared route NEVER reaches it, whatever the bridge state.
  *
  * The fake relay (a local http server speaking PB-3's relay/v1/plugin)
- * records the forwarded coordinates, can refuse with x-zen-remote-error,
+ * records the forwarded coordinates, can refuse with x-aug-remote-error,
  * stream NDJSON, and observe the caller's abort.
  */
 'use strict'
@@ -152,17 +152,17 @@ function startFakeRelay({ refuse } = {}) {
     })
     req.on('close', () => { if (!res.writableEnded) state.aborted += 1 })
     if (refuse !== undefined) {
-      res.writeHead(refuse.status ?? 403, { 'x-zen-remote-error': refuse.code, 'content-type': 'application/json' })
+      res.writeHead(refuse.status ?? 403, { 'x-aug-remote-error': refuse.code, 'content-type': 'application/json' })
       res.end(JSON.stringify({ ok: false, error: { code: refuse.code } }))
       return
     }
-    if (url.pathname === '/_dsh/zen-remote/relay/v1/plugin' && req.headers['x-zr-path'] === '/panel/stream') {
+    if (url.pathname === '/_dsh/aug-remote/relay/v1/plugin' && req.headers['x-zr-path'] === '/panel/stream') {
       res.writeHead(200, { 'content-type': 'application/x-ndjson' })
       res.write('frame-1\n')
       setTimeout(() => { res.write('frame-2\n'); res.end() }, 15)
       return
     }
-    if (url.pathname === '/_dsh/zen-remote/relay/v1/plugin' && req.headers['x-zr-path'] === '/panel/write') {
+    if (url.pathname === '/_dsh/aug-remote/relay/v1/plugin' && req.headers['x-zr-path'] === '/panel/write') {
       // PB-9: echo the forwarded body verbatim so the test can prove the
       // exact bytes and content type crossed the sub-client boundary.
       const chunks = []
@@ -173,7 +173,7 @@ function startFakeRelay({ refuse } = {}) {
       })
       return
     }
-    if (url.pathname === '/_dsh/zen-remote/relay/v1/plugin' && req.headers['x-zr-path'] === '/panel/hold') {
+    if (url.pathname === '/_dsh/aug-remote/relay/v1/plugin' && req.headers['x-zr-path'] === '/panel/hold') {
       res.writeHead(200, { 'content-type': 'text/plain' })
       res.write('held')
       hold = () => res.end()
@@ -234,7 +234,7 @@ function fakeRelayClient(relayPort) {
         signal,
       }
       try {
-        return await fetch(`http://127.0.0.1:${relayPort}/_dsh/zen-remote/relay/v1/plugin`, init)
+        return await fetch(`http://127.0.0.1:${relayPort}/_dsh/aug-remote/relay/v1/plugin`, init)
       } catch (error) {
         if (signal?.aborted) {
           throw Object.assign(new Error('aborted'), { code: 'aborted' })
@@ -386,7 +386,7 @@ test('PB-4: every unbridged reason answers the uniform 503 and the local handler
     for (const [reason, path, label] of cases) {
       const res = await host.get(path)
       assert.equal(res.status, 503, label)
-      assert.equal(res.headers.get('x-zen-remote'), 'unbridged')
+      assert.equal(res.headers.get('x-aug-remote'), 'unbridged')
       assert.equal(res.headers.get('content-type'), 'application/json; charset=utf-8')
       const body = await res.json()
       assert.deepEqual(body, { ok: false, error: { code: 'zr-plugin-unbridged', reason, plugin: 'test-panel' } }, label)
@@ -400,7 +400,7 @@ test('PB-4: every unbridged reason answers the uniform 503 and the local handler
     assert.equal(absent.status, 503)
     assert.equal((await absent.json()).error.reason, 'not-on-server')
 
-    // The relay itself refuses (x-zen-remote-error) → that code is the reason.
+    // The relay itself refuses (x-aug-remote-error) → that code is the reason.
     statuses = [{ plugin: 'test-panel', bridged: true, localVersion: '1.0.0', serverVersion: '1.0.0' }]
     const refusingRelay = await startFakeRelay({ refuse: { status: 403, code: 'not-shared' } })
     const handle2 = installPluginRouteIntercept({
@@ -601,7 +601,7 @@ test('PB-5-fix: a relay TRANSPORT failure answers the uniform 503 offline, and t
   try {
     const res = await host.get(`/panel/data?sessionId=${encodeURIComponent(VIRTUAL)}`)
     assert.equal(res.status, 503)
-    assert.equal(res.headers.get('x-zen-remote'), 'unbridged')
+    assert.equal(res.headers.get('x-aug-remote'), 'unbridged')
     assert.deepEqual(await res.json(), {
       ok: false, error: { code: 'zr-plugin-unbridged', reason: 'offline', plugin: 'test-panel' },
     })

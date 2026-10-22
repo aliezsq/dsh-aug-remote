@@ -24,7 +24,7 @@ declare module '@deepseek-ai/cordis' {
 import type { AdminAdmission } from './admin-routes.js';
 import type { RelayClient } from './relay-client.js';
 import type { BridgeRegistry } from './plugin-bridge.js';
-export type { BridgeDeclaration, ZenRemoteService } from './plugin-bridge.js';
+export type { BridgeDeclaration, AugRemoteService } from './plugin-bridge.js';
 export { Config, resolveRole } from './config.js';
 export { sameOriginPost } from './http.js';
 /** Exact route the phone composer POSTs one file body to. */

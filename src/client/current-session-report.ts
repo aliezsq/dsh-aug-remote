@@ -28,7 +28,7 @@ import { probeClientConfigRole } from './remote-share-register.ts'
 
 /** Default POST target, mirrored from src/client-routes.ts (the client
  * tsconfig cannot reach the host file). */
-const CURRENT_SESSION_ROUTE = '/_dsh/zen-remote/client/current-session'
+const CURRENT_SESSION_ROUTE = '/_dsh/aug-remote/client/current-session'
 
 /** The re-check cadence — the same 1s the backend's fallback poll uses. */
 const CHECK_INTERVAL_MS = 1_000
@@ -160,5 +160,5 @@ export function startCurrentSessionReporter(options: CurrentSessionReporterOptio
  * on a width gate. On a host the loop idles after one probe answer.
  */
 export function mountCurrentSessionReporter(ctx: { effect(fn: () => () => void, name: string): void }, options: CurrentSessionReporterOptions = {}): void {
-  ctx.effect(() => startCurrentSessionReporter(options), 'dsh-zen-remote: current-session report')
+  ctx.effect(() => startCurrentSessionReporter(options), 'dsh-aug-remote: current-session report')
 }

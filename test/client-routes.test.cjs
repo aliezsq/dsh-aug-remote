@@ -1,4 +1,4 @@
-/* dsh-zen-remote · client routes (src/client-routes.ts, T16)
+/* dsh-aug-remote · client routes (src/client-routes.ts, T16)
  *
  * The sub-client backend API: the REAL createClientHandler runs over a real
  * node:http socket, in front of a mock SERVER gateway that records every
@@ -53,7 +53,7 @@ function startMockGateway() {
         sendJson(res, status, payload)
         return
       }
-      if (req.url === '/_dsh/zen-remote/relay/ping') {
+      if (req.url === '/_dsh/aug-remote/relay/ping') {
         const [status, payload] = state.pingReply()
         sendJson(res, status, payload)
         return
@@ -396,7 +396,7 @@ test('status: the probe drives the state — connected (404), revoked (401), une
     assert.deepEqual(connectedBody, { state: 'connected', serverUrl: gwUrl, pluginBridge: [] })
     // The probe presented the row's token as a Bearer header.
     const probe = gwSeen[gwSeen.length - 1]
-    assert.equal(probe.url, '/_dsh/zen-remote/relay/ping')
+    assert.equal(probe.url, '/_dsh/aug-remote/relay/ping')
     assert.equal(probe.headers.authorization, 'Bearer tok-row')
 
     gwState.pingReply = () => [401, { ok: false, reason: 'unpaired' }]
@@ -971,7 +971,7 @@ test('T23a-fix2 status: a changed ADDRESS (token unchanged) never serves the cac
 test('an unknown route under the prefix answers 404', async () => {
   const { server, port } = await startClientServer(makeRow())
   try {
-    const res = await request(port, { method: 'GET', path: '/_dsh/zen-remote/client/nothing' })
+    const res = await request(port, { method: 'GET', path: '/_dsh/aug-remote/client/nothing' })
     assert.equal(res.status, 404)
     assert.equal(JSON.parse(res.body).error.code, 'not-found')
   } finally {
@@ -982,7 +982,7 @@ test('an unknown route under the prefix answers 404', async () => {
 test('an injected fetch sees the exact probe request: bearer header, ping path, no redirects followed', async () => {
   const { server, port } = await startClientServer(makeRow(), {
     fetchImpl: async (url, init) => {
-      assert.equal(String(url), `${gwUrl}/_dsh/zen-remote/relay/ping`)
+      assert.equal(String(url), `${gwUrl}/_dsh/aug-remote/relay/ping`)
       assert.equal(init.method, 'GET')
       assert.deepEqual(init.headers, { authorization: 'Bearer tok-row' })
       assert.equal(init.redirect, 'manual')
@@ -1014,7 +1014,7 @@ async function startHandshakeServer(fingerprints) {
     req.on('data', (c) => chunks.push(c))
     req.on('end', () => {
       seen.push({ url: String(req.url).split('?')[0] })
-      if (String(req.url).split('?')[0] === '/_dsh/zen-remote/relay/v1/handshake') {
+      if (String(req.url).split('?')[0] === '/_dsh/aug-remote/relay/v1/handshake') {
         sendJson(res, 200, { ok: true, relayProtocol: 1, serverId: 'abcd1234', serverName: '指纹服务器', dshVersion: '0.0.0-t42', fingerprints: state.fingerprints })
         return
       }

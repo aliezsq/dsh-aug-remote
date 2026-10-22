@@ -79,7 +79,7 @@ export function RemoteStatusIcon({ sessionId, status, t }: RemoteStatusIconProps
     <button
       type="button"
       className="zr-remote-status"
-      data-zen-remote="remote-status"
+      data-aug-remote="remote-status"
       data-state={description.state}
       title={description.hoverText}
       aria-label={description.hoverText}

@@ -13,7 +13,7 @@
  * original route untouched.
  *
  * The un-bridged refusals answer a UNIFORM 503 shape (header
- * `x-zen-remote: unbridged`, JSON body naming the reason) — and, decisive
+ * `x-aug-remote: unbridged`, JSON body naming the reason) — and, decisive
  * for the security posture, they answer WITHOUT the local plugin handler
  * ever running: a remote session must never execute a plugin route against
  * local state, not even when the bridge is down (docs/adr/0001).
@@ -79,7 +79,7 @@ export interface PluginRouteInterceptDiagnostics {
 export interface InstallPluginRouteInterceptOptions {
     /** The RAW webServer instance (`ctx.webServer[symbols.original]`). */
     webServer: object;
-    /** The local declaration registry (the `zenRemote` service's table). */
+    /** The local declaration registry (the `augRemote` service's table). */
     registry: BridgeRegistry;
     /** The client relay client; `pluginRequest` is the forwarding door. */
     relay: RelayClient;

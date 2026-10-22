@@ -16,7 +16,7 @@ const outputPath = join(root, 'lib', 'client.js')
 // id logs "loaded without registering / 1 entry did not activate" and its UI
 // half never mounts (this is what broke the dsh-aug-remote rename in 2.4.2).
 const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
-const moduleId = typeof manifest.name === 'string' && manifest.name !== '' ? manifest.name : 'dsh-zen-remote'
+const moduleId = typeof manifest.name === 'string' && manifest.name !== '' ? manifest.name : 'dsh-aug-remote'
 
 // Walk the emit dir recursively and key each module by its forward-slash
 // relative path (e.g. "index.js", "styles/index.js"). Nested emit dirs now

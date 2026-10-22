@@ -1,4 +1,4 @@
-/* dsh-zen-remote · CP4 recovery: the merged global streams reopen on their own
+/* dsh-aug-remote · CP4 recovery: the merged global streams reopen on their own
  *
  * Drives the REAL createRelayClient (real HTTP, real NDJSON pump, real
  * reconnect ladder on an injected clock) against a fake relay server, through

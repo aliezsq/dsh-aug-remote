@@ -40,7 +40,7 @@ import type { RelayClient, RelayHttpResult } from './relay-client.js'
 import { fromVirtual } from './virtual-id.js'
 
 /** Prefix all client routes live under (one webServer prefix registration). */
-export const CLIENT_ROUTE_PREFIX = '/_dsh/zen-remote/client'
+export const CLIENT_ROUTE_PREFIX = '/_dsh/aug-remote/client'
 
 /** POST `{serverUrl, code, name}`: redeem a desktop pairing code. */
 export const CLIENT_CLAIM_ROUTE = `${CLIENT_ROUTE_PREFIX}/claim`

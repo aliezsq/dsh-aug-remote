@@ -1,4 +1,4 @@
-<h1 align="center">dsh-zen-remote</h1>
+<h1 align="center">dsh-aug-remote</h1>
 <p align="center">一个 DeepSeek Harness 插件、两种角色。<b>主服务端</b>把 DSH 变成手机能安全访问的 PWA（手机界面、配对网关、锁屏推送），并把选定的会话共享给已配对的桌面端；<b>子客户端</b>跑在另一台 DSH 桌面端里，把服务端共享的会话直接摆进自己的侧边栏——完整历史、实时进度、发消息、审批、终端，全部在服务端执行。</p>
 
 > **这是 [KyoMio/dsh-zen-remote](https://github.com/KyoMio/dsh-zen-remote) 的个人 fork**：在它基础上加了远程产物下载、Office 预览中继、客户端本地文件物化上传和 500 MiB 上传上限。它不是官方插件，也不代表上游立场。请从本仓库的 Release 安装；改动与维护说明见 [NOTICE](NOTICE) 与 [FORK.md](FORK.md)。
@@ -8,7 +8,7 @@
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0B7285?style=flat-square" alt="MIT"></a>
 <br>
 <img src="https://img.shields.io/badge/DeepSeek%20Harness-0.1.7%20%E2%80%93%200.2.x-4D6BFE?style=flat-square" alt="DeepSeek Harness 0.1.7 – 0.2.x">
-<img src="https://img.shields.io/node/v/dsh-zen-remote?style=flat-square&color=339933&logo=nodedotjs&logoColor=white" alt="Node">
+<img src="https://img.shields.io/node/v/dsh-aug-remote?style=flat-square&color=339933&logo=nodedotjs&logoColor=white" alt="Node">
 <img src="https://img.shields.io/badge/PWA-Web%20Push-5A0FC8?style=flat-square&logo=pwa&logoColor=white" alt="PWA + Web Push">
 <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript strict">
 </p>
@@ -72,7 +72,7 @@
 
 ## 安装
 
-**界面安装**（桌面端 App 与 Web 端都适用；桌面端是 2.0 主服务端的实际形态）：左侧「插件」页 →「添加插件」→ 输入 `dsh-zen-remote` → 装完点「立即启用」，然后重启桌面端 App（Web 端重启 `dsh web`）。
+**界面安装**（桌面端 App 与 Web 端都适用；桌面端是 2.0 主服务端的实际形态）：左侧「插件」页 →「添加插件」→ 输入 `dsh-aug-remote` → 装完点「立即启用」，然后重启桌面端 App（Web 端重启 `dsh web`）。
 
 **Web 服务命令行**（无头机器上跑 `dsh web` 的主服务端，手机访问也指向这里）：
 
@@ -81,9 +81,9 @@ dsh plugin --profile web add dsh-aug-remote
 # 然后重启 dsh web
 ```
 
-> **开着 HMR 升级插件：** 先 remove 再 install（`dsh plugin --profile <name> remove dsh-zen-remote` 后再 `add dsh-zen-remote`，或在「插件」页先卸载再添加）；直接在运行中的旧版上覆盖安装不会被干净地接管。
+> **开着 HMR 升级插件：** 先 remove 再 install（`dsh plugin --profile <name> remove dsh-aug-remote` 后再 `add dsh-aug-remote`，或在「插件」页先卸载再添加）；直接在运行中的旧版上覆盖安装不会被干净地接管。
 
-> **DSH 0.2.1-alpha.3 起：** `dsh --profile <name> --from-default-profile <模板>` 会用模板新副本**覆盖**已有的自定义 profile，删掉其中的 `dependencies`（包括 dsh-zen-remote）和用户 `cordis.patch.yml`。执行前先备份 `~/.dsh/profiles/<name>`（如 `cp -a ~/.dsh/profiles/<name> ~/.dsh/profiles/<name>.bak-$(date +%Y%m%d%H%M%S)`），之后重新装插件。`~/.dsh/*.json` 里的配对/共享状态在 profile 之外，不受影响。
+> **DSH 0.2.1-alpha.3 起：** `dsh --profile <name> --from-default-profile <模板>` 会用模板新副本**覆盖**已有的自定义 profile，删掉其中的 `dependencies`（包括 dsh-aug-remote）和用户 `cordis.patch.yml`。执行前先备份 `~/.dsh/profiles/<name>`（如 `cp -a ~/.dsh/profiles/<name> ~/.dsh/profiles/<name>.bak-$(date +%Y%m%d%H%M%S)`），之后重新装插件。`~/.dsh/*.json` 里的配对/共享状态在 profile 之外，不受影响。
 
 `dsh plugin` 必须用 `--profile` 指明装进哪个 profile，不带会直接报错。桌面端的 `desktop` profile 由 App 独占管理，命令行会拒绝 `--profile desktop`，所以桌面端只能用上面的界面安装。
 
@@ -93,7 +93,7 @@ dsh plugin --profile web add dsh-aug-remote
 // ~/.dsh/profiles/desktop/package.json
 {
   "dependencies": {
-    "dsh-aug-remote": "^2.4.3"        // 本地开发换成 "link:/path/to/dsh-aug-remote"
+    "dsh-aug-remote": "^2.5.0"        // 本地开发换成 "link:/path/to/dsh-aug-remote"
   }
 }
 ```
@@ -103,9 +103,9 @@ cd ~/.dsh/profiles/desktop && pnpm install
 # 然后重启 DSH 桌面端 App（Web 端重启 dsh web）
 ```
 
-`pnpm install` 只装包、不启用。还要到「插件」页打开它的开关，或者自己把 `"dsh-zen-remote"` 追加到同一个文件 `dsh.profile.bundles` 数组的末尾（数组里原有的项别动）。界面安装和 `dsh plugin` 会自动写这一项，手工装法要自己补。
+`pnpm install` 只装包、不启用。还要到「插件」页打开它的开关，或者自己把 `"dsh-aug-remote"` 追加到同一个文件 `dsh.profile.bundles` 数组的末尾（数组里原有的项别动）。界面安装和 `dsh plugin` 会自动写这一项，手工装法要自己补。
 
-无论哪种装法，组合层都只有**一行**。2.0.0 起挂载层只剩 `dsh-zen-remote` 一行，主入口按角色自己加载网关与推送子插件。不要再把旧的 `dsh-zen-remote-gateway` / `dsh-zen-remote-push` 两行加回来：loader 会警告后跳过；真挂两行网关就是两个网关进程抢 3088 端口。
+无论哪种装法，组合层都只有**一行**。2.0.0 起挂载层只剩 `dsh-aug-remote` 一行，主入口按角色自己加载网关与推送子插件。不要再把旧的 `dsh-aug-remote-gateway` / `dsh-aug-remote-push` 两行加回来：loader 会警告后跳过；真挂两行网关就是两个网关进程抢 3088 端口。
 
 <details>
 <summary>静态挂载 / 本地开发</summary>
@@ -114,7 +114,7 @@ cd ~/.dsh/profiles/desktop && pnpm install
 
 </details>
 
-卸载：在「插件」页打开 dsh-zen-remote，点「卸载」并确认；Web 服务也可以用命令行 `dsh plugin --profile web remove dsh-zen-remote`；手工装的从 profile 的 `dependencies` 和 `dsh.profile.bundles` 里删掉它。之后重启；要清掉配对与共享状态再删 `~/.dsh/lan-gate-state.json`、`~/.dsh/lan-gate.config.json`、`~/.dsh/zen-remote-shares.json` 与 `~/.dsh/zen-remote-server.json`（服务端 id；删了之后已配对的子客户端会把它当成一台新服务端）。
+卸载：在「插件」页打开 dsh-aug-remote，点「卸载」并确认；Web 服务也可以用命令行 `dsh plugin --profile web remove dsh-aug-remote`；手工装的从 profile 的 `dependencies` 和 `dsh.profile.bundles` 里删掉它。之后重启；要清掉配对与共享状态再删 `~/.dsh/lan-gate-state.json`、`~/.dsh/lan-gate.config.json`、`~/.dsh/aug-remote-shares.json` 与 `~/.dsh/aug-remote-server.json`（服务端 id；删了之后已配对的子客户端会把它当成一台新服务端）。
 
 ---
 
@@ -122,11 +122,11 @@ cd ~/.dsh/profiles/desktop && pnpm install
 
 一次性的事实，按踩到的概率排序：
 
-- **三行合并为一行。** profile 补丁里残留的 `dsh-zen-remote-gateway` / `dsh-zen-remote-push` 旧行会被 loader 警告后跳过。原来写在**那两行上**的 `config:` 不再生效——搬到 `dsh-zen-remote` 行，或者直接在插件设置页里改。
-- **1.0 时代在 profile 补丁里手工 insert 过 `dsh-zen-remote/dsh-push.mjs` 那一行的，需要删掉**——主入口现在按角色自动加载推送子插件，残留的那一行会让推送加载两次。
+- **三行合并为一行。** profile 补丁里残留的 `dsh-aug-remote-gateway` / `dsh-aug-remote-push` 旧行会被 loader 警告后跳过。原来写在**那两行上**的 `config:` 不再生效——搬到 `dsh-aug-remote` 行，或者直接在插件设置页里改。
+- **1.0 时代在 profile 补丁里手工 insert 过 `dsh-aug-remote/dsh-push.mjs` 那一行的，需要删掉**——主入口现在按角色自动加载推送子插件，残留的那一行会让推送加载两次。
 - **`~/.dsh/lan-gate.config.json` 继续生效。** 无需迁移，它的值会显示在设置页里。每个字段的优先级：环境变量 > 插件行设置 > `lan-gate.config.json` > 内置默认值。插件从不改写、也从不删除这个文件。
 - **已配对设备自动归为 Web 应用端**，继续照常用，不需要重新配对。
-- **管理页搬家了。** `/lan-gate/admin` 现在只剩一段指向插件设置页的说明（对非本机直连的请求仍然 403）。配对码、设备管理、测试推送、会话共享全部在 DSH「插件」页的 dsh-zen-remote 设置区块里。
+- **管理页搬家了。** `/lan-gate/admin` 现在只剩一段指向插件设置页的说明（对非本机直连的请求仍然 403）。配对码、设备管理、测试推送、会话共享全部在 DSH「插件」页的 dsh-aug-remote 设置区块里。
 - 什么配置都不动的话，插件按主服务端起来，网关、推送、手机界面的行为与 1.1.x 完全一致。
 
 ---
@@ -136,7 +136,7 @@ cd ~/.dsh/profiles/desktop && pnpm install
 装完在本机 `127.0.0.1:3080` 就能用手机界面。要从外面访问：给自己的网关配一个终结 TLS 的反代，用 403 自检确认，再配对设备。nginx / Caddy / Cloudflare Tunnel / Lucky 的完整配置见 [docs/remote-access.md](docs/remote-access.md)，简版：
 
 1. 网关只监听 `127.0.0.1:3088`，由反代（nginx、Caddy、Cloudflare Tunnel、Lucky）终结 HTTPS 并转发。**自检**：用**手机流量**（别连家里 Wi-Fi）访问 `https://你的域名/lan-gate/admin`，正确结果是 **403**。能看到说明页就代表反代没带 `X-Forwarded-*` 头、公网请求被当成了本机用户——先修转发头再往下走。
-2. 在**服务端这台机器**打开 DSH「插件」页，展开 dsh-zen-remote 设置区块，先选要配的设备角色，再点生成 8 位配对码（10 分钟有效、只能用一次）。
+2. 在**服务端这台机器**打开 DSH「插件」页，展开 dsh-aug-remote 设置区块，先选要配的设备角色，再点生成 8 位配对码（10 分钟有效、只能用一次）。
 3. 手机打开你的 HTTPS 域名，在配对页输入配对码。配对成功即进入 DSH，身份存在长期 Cookie 里。浏览器菜单「添加到主屏幕」装成 App，同意通知权限，agent 干完活推到锁屏。
 
 ---
@@ -147,7 +147,7 @@ cd ~/.dsh/profiles/desktop && pnpm install
 
 | | **Web 应用端** | **桌面应用端** |
 | --- | --- | --- |
-| 形态 | 手机、平板及各类浏览器，经网关访问 | 装了 DSH 桌面端、zen-remote 设为子客户端角色的计算机 |
+| 形态 | 手机、平板及各类浏览器，经网关访问 | 装了 DSH 桌面端、aug-remote 设为子客户端角色的计算机 |
 | 可见范围 | 服务端**全部**会话 | **仅**服务端已开启远程的会话（服务端强制） |
 | 配对方式 | 浏览器打开网关地址，在配对页输入配对码 | 在子客户端的插件设置页填服务端地址和配对码 |
 
@@ -189,7 +189,7 @@ cd ~/.dsh/profiles/desktop && pnpm install
 
 ### 设置页配置引导
 
-**在哪打开**：DSH 左侧点「插件」→ 插件列表里点 dsh-zen-remote → 在「包含的组件」里再点一次 dsh-zen-remote，下面就是设置区块。
+**在哪打开**：DSH 左侧点「插件」→ 插件列表里点 dsh-aug-remote → 在「包含的组件」里再点一次 dsh-aug-remote，下面就是设置区块。
 
 **通用操作**：字段右上角出现「已覆盖」表示这个值保存在插件设置里（覆盖了配置文件或默认值），点「重置」恢复成下一层的值；改完点卡片底部的「保存」。需要重载的字段会有提示，保存后插件自己重载，不用重启 App。
 
@@ -223,7 +223,7 @@ cd ~/.dsh/profiles/desktop && pnpm install
 
 ### 字段参考
 
-全部在 DSH「插件」页 → dsh-zen-remote 设置区块里改。每个字段按此顺序取第一个合法值：**环境变量 > 插件行设置 > `~/.dsh/lan-gate.config.json` > 默认值**；某层的值类型/范围/枚举不合法时该层视为未设置。改完需要重启网关/推送的字段（`role`、`port`、`host`、`targetPort`、`rateLimit`、`trustedProxies`、`vapidSubject`、`lang` 与推送各字段），插件会自己重载插件行——不用手动重启 App；其余字段立即生效。
+全部在 DSH「插件」页 → dsh-aug-remote 设置区块里改。每个字段按此顺序取第一个合法值：**环境变量 > 插件行设置 > `~/.dsh/lan-gate.config.json` > 默认值**；某层的值类型/范围/枚举不合法时该层视为未设置。改完需要重启网关/推送的字段（`role`、`port`、`host`、`targetPort`、`rateLimit`、`trustedProxies`、`vapidSubject`、`lang` 与推送各字段），插件会自己重载插件行——不用手动重启 App；其余字段立即生效。
 
 插件行字段（与 `src/config.ts` 一致）：
 
@@ -323,7 +323,7 @@ cd ~/.dsh/profiles/desktop && pnpm install
 
 三层，从严到宽：
 
-1. **中继协议版本**必须一致——实际操作上，**两端 zen-remote 需为相同版本**。服务端若还是 1.x，它的网关不认子客户端的 Bearer 令牌，请求会撞上通用配对墙，子客户端报「令牌已失效（或服务端 zen-remote 低于 2.0.0）」。DSH 版本可以不同。
+1. **中继协议版本**必须一致——实际操作上，**两端 aug-remote 需为相同版本**。服务端若还是 1.x，它的网关不认子客户端的 Bearer 令牌，请求会撞上通用配对墙，子客户端报「令牌已失效（或服务端 aug-remote 低于 2.0.0）」。DSH 版本可以不同。
 2. **DSH 接口指纹**决定其余：两端各自对中继会用到的几组远程接口生成规范化指纹，握手时比对。全部一致即完全兼容，版本号不同也无关；有差异照常连接，远程分组标注「（版本有差异）」，设置页诊断区列出差异组，只有受影响的面板降级。
 3. **运行时降级**：某次转发调用因参数或结果校验失败，只有那个面板显示「与服务端版本不兼容」并记入诊断区，其余功能继续可用。
 
@@ -347,7 +347,7 @@ cd ~/.dsh/profiles/desktop && pnpm install
 - @ 引用候选由宿主**先截前 50 条再按共享过滤**：服务端会话很多时，已共享会话可能不出现在候选列表里（不影响引用检查本身——直接写出的引用仍会被逐条校验）。
 - 第三方插件自己的接口要经[插件桥](docs/plugin-bridge.md)才能在远程会话里工作：协作插件自行登记，第三方插件靠内置适配器。都没接的插件，其面板在远程会话里降级或隐藏（插件的**工具**跑在服务端，不受影响）。
 - 装了 [dsh-better-sidebar](https://github.com/omdsh-dev/DSH-better-sidebar) 时，远程会话里它有两档处理：**0.25.0、0.26.0、0.26.1、0.28.0-alpha.0 与 0.28.0** 五版由内置适配器桥接——面板读写的是主服务端的数据（整机数据，需在主服务端设置页逐插件同意，见[安全边界](docs/remote-access.md)）；**其他版本维持隐藏**——那些版本的面板读写的是子客户端**本机**的文件，且因为它接管了宿主的「文件」标签，未桥接的远程会话里侧栏文件 tab 显示「未桥接」说明占位；聊天或交付物里的文件链接在远程会话里会打开一个空的右栏。
-- 两端 zen-remote 需为**相同版本**（中继协议版本一致）；DSH 版本可以不同，接口指纹有差异时远程分组标注「（版本有差异）」。
+- 两端 aug-remote 需为**相同版本**（中继协议版本一致）；DSH 版本可以不同，接口指纹有差异时远程分组标注「（版本有差异）」。
 
 ---
 
@@ -364,10 +364,10 @@ cd ~/.dsh/profiles/desktop && pnpm install
 ## 权限与数据
 
 - **网络**：网关只监听本机（默认 `127.0.0.1:3088`），对外暴露完全由你的反代/隧道决定；推送经浏览器推送服务商中转（aes128gcm 端到端加密）；桌面应用端与主服务端之间的中继也走这条网关，授权在服务端逐请求复核。插件自身不向任何第三方上报数据。
-- **文件**：附件上传只写入当前会话工作目录下的 `.dsh-uploads/`；配对状态在 `~/.dsh/lan-gate-state.json`，配置在 `~/.dsh/lan-gate.config.json`，共享表在 `~/.dsh/zen-remote-shares.json`，服务端 id 在 `~/.dsh/zen-remote-server.json`。
+- **文件**：附件上传只写入当前会话工作目录下的 `.dsh-uploads/`；配对状态在 `~/.dsh/lan-gate-state.json`，配置在 `~/.dsh/lan-gate.config.json`，共享表在 `~/.dsh/aug-remote-shares.json`，服务端 id 在 `~/.dsh/aug-remote-server.json`。
 - **凭据**：不收集、不存储任何账号密码；设备身份是本插件自己签发的随机令牌（Web 应用端为 HttpOnly Cookie，桌面应用端为密钥字段），外加一枚每次加载现生成的中继共享密钥，不出这台机器对。
 
-排障：运行日志在 `~/.dsh/logs/web.log`（网关与推送的行带 `[dsh-zen-remote-*]` 前缀；桌面端构建打到 App 控制台）。安全问题请走 GitHub Security Advisories 私下报告，不要公开提 issue。
+排障：运行日志在 `~/.dsh/logs/web.log`（网关与推送的行带 `[dsh-aug-remote-*]` 前缀；桌面端构建打到 App 控制台）。安全问题请走 GitHub Security Advisories 私下报告，不要公开提 issue。
 
 ---
 
@@ -378,7 +378,7 @@ cd ~/.dsh/profiles/desktop && pnpm install
 
 | 插件 | 移动端适配内容 | 实测版本 |
 | --- | --- | --- |
-| [dsh-better-sidebar](https://github.com/omdsh-dev/DSH-better-sidebar) | 0.19+：它的全部 tab 都在 DSH 0.1.5 官方右侧栏里、手机上宿主自己切全屏（避让刘海与底部指示条）——会话页头部留入口按钮，左缘回退手势收它，文件树里点 @ 引用后自动收起。≤ 0.18（自绘右栏，只在 DSH < 0.1.5 上）：手机全宽抽屉并避让刘海安全区、底部居中的关闭按钮。**插件桥**：**0.25.0、0.26.0、0.26.1、0.28.0-alpha.0 与 0.28.0** 五版由 zen-remote 的内置适配器桥接——远程会话里它的文件 / git / 任务面板读写的是主服务端的数据（整机数据，需在主服务端设置页逐插件同意；等于让桌面应用端读写服务端整盘并执行 git 写操作，见[安全边界](docs/remote-access.md)）；其他版本不桥接，远程会话维持「隐藏本机界面」的原有处理 | 0.19.1（老版规则 0.15.0；适配器 0.25.0, 0.26.0, 0.26.1, 0.28.0-alpha.0, 0.28.0） |
+| [dsh-better-sidebar](https://github.com/omdsh-dev/DSH-better-sidebar) | 0.19+：它的全部 tab 都在 DSH 0.1.5 官方右侧栏里、手机上宿主自己切全屏（避让刘海与底部指示条）——会话页头部留入口按钮，左缘回退手势收它，文件树里点 @ 引用后自动收起。≤ 0.18（自绘右栏，只在 DSH < 0.1.5 上）：手机全宽抽屉并避让刘海安全区、底部居中的关闭按钮。**插件桥**：**0.25.0、0.26.0、0.26.1、0.28.0-alpha.0 与 0.28.0** 五版由 aug-remote 的内置适配器桥接——远程会话里它的文件 / git / 任务面板读写的是主服务端的数据（整机数据，需在主服务端设置页逐插件同意；等于让桌面应用端读写服务端整盘并执行 git 写操作，见[安全边界](docs/remote-access.md)）；其他版本不桥接，远程会话维持「隐藏本机界面」的原有处理 | 0.19.1（老版规则 0.15.0；适配器 0.25.0, 0.26.0, 0.26.1, 0.28.0-alpha.0, 0.28.0） |
 | [@nanmicoder/dsh-agent-teams](https://github.com/NanmiCoder/dsh-agent-teams) | AgentTeams 活动浮层挪到会话头部下方（原位置压住头部按钮）、会话列表页自动隐藏；子代理会话头部保留可点的父会话标题，一键切回主会话 | 0.1.9 |
 | [@ychris12138/dsh-usage-stats](https://github.com/Ychris12138/dsh-usage-stats) | 用量与余额入口收进主屏 chips 行 | 0.2.9 |
 | [@opendsh/dsh-plugin-scheduled-tasks](https://github.com/Ceelog/dsh-plugins) | 定时任务入口收进主屏 chips 行 | 0.2.3 |
@@ -387,11 +387,11 @@ cd ~/.dsh/profiles/desktop && pnpm install
 | [dsh-vision-toolkit](https://www.npmjs.com/package/@anionex/dsh-vision-toolkit) | 图像 Q&A/OCR，配合手机端附件上传使用 | — |
 | [dsh-web-ui 全家桶](https://www.npmjs.com/package/@linxin666/dsh-web-ui-all) | 沿用上游 dsh-web-mobile 的兼容规则（文件树 / 预览浮层限宽居中等） | — |
 
-**混合版本**——桥接与否逐端判定：桥不桥看**服务端**装的 better-sidebar 版本（在适配器版本表里 + 主人同意）；界面发什么请求看**子客户端**自己的版本（UI 在本机加载）；两端 zen-remote 不同版则适配器摘要比对失败、退隐藏档：
+**混合版本**——桥接与否逐端判定：桥不桥看**服务端**装的 better-sidebar 版本（在适配器版本表里 + 主人同意）；界面发什么请求看**子客户端**自己的版本（UI 在本机加载）；两端 aug-remote 不同版则适配器摘要比对失败、退隐藏档：
 
-（旧 zen-remote + 服务端 BS 0.25 + 客户端 BS 0.25 即**当前已发布版**的现状，照常桥接。）
+（旧 aug-remote + 服务端 BS 0.25 + 客户端 BS 0.25 即**当前已发布版**的现状，照常桥接。）
 
-| 两端 zen-remote | 服务端 BS | 客户端 BS | 结果 |
+| 两端 aug-remote | 服务端 BS | 客户端 BS | 结果 |
 | --- | --- | --- | --- |
 | 新（含 0.26 适配） | 0.26 | 0.26 | 全量桥接，新功能全可用 |
 | 新 | 0.25 | 0.25 | 照常桥接，行为与旧版一致 |

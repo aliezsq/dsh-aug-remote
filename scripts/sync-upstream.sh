@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rebase this fork onto the newest upstream dsh-zen-remote tag, then rebuild.
+# Rebase this fork onto the newest upstream dsh-aug-remote tag, then rebuild.
 #
 #   ./scripts/sync-upstream.sh            # newest upstream tag
 #   ./scripts/sync-upstream.sh v2.2.7     # a specific tag

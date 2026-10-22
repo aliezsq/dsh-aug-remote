@@ -113,7 +113,7 @@ function DownloadButton({ sessionId, t, saveFile, absolutePath }: DownloadButton
       // console: without it a failed download on a client we cannot debug is
       // a dead end.
       const reason = (error instanceof Error ? error.message : String(error)).trim()
-      console.error('[dsh-zen-remote] remote download failed:', path, error)
+      console.error('[dsh-aug-remote] remote download failed:', path, error)
       setFailure(reason === '' ? 'unknown' : reason.slice(0, 22))
       setPhase('error')
     }

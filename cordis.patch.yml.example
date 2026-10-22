@@ -1,4 +1,4 @@
-# dsh-zen-remote — 静态挂载示例
+# dsh-aug-remote — 静态挂载示例
 #
 # 不想走插件管理（「插件」页或 `dsh plugin --profile <name> add`）的话，
 # 把下面这段抄进你 DSH profile 的
@@ -15,9 +15,9 @@
 #
 # 行配置（全部可省，走默认值；settings 页保存的值优先于这里手写的）：
 - insert:
-    - id: dsh-zen-remote
-      name: dsh-zen-remote
-      path: file:///ABSOLUTE_PATH/dsh-zen-remote/lib/index.js
+    - id: dsh-aug-remote
+      name: dsh-aug-remote
+      path: file:///ABSOLUTE_PATH/dsh-aug-remote/lib/index.js
       config:
         role: host                # host（主服务端，默认）| client（子客户端）
         serverName: My-Mac        # 服务端显示名，出现在子客户端分组标题里（≤40 字）

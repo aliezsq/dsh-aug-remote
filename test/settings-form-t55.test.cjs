@@ -1,4 +1,4 @@
-// dsh-zen-remote · T55 settings-page fixes (src/client-data/settings-form.ts)
+// dsh-aug-remote · T55 settings-page fixes (src/client-data/settings-form.ts)
 //
 // The two real-machine defects, driven at the form/derive layer (the same
 // surfaces scripts/check-settings-form.mjs pins, imported here the dynamic
@@ -59,14 +59,14 @@ function fakeScope(overrides = {}) {
 // ---- T55 #1: the stale admin baseline ----------------------------------------
 
 test('T55: a client data source ignores the stale admin baseline; the admin source keeps it', async () => {
-  const { ZenRemoteSettingsForm } = await load()
+  const { AugRemoteSettingsForm } = await load()
 
   // The row now stores role:'client', the page polls the client source, and
   // the kept host page had fed role:'host': the dropdown must show the ROW's
   // client, and fields the row does not store must fall back off the stale
   // baseline instead of showing the old host's effective values.
   const client = fakeScope({ value: { role: 'client' } })
-  const clientForm = new ZenRemoteSettingsForm(client.scope)
+  const clientForm = new AugRemoteSettingsForm(client.scope)
   clientForm.setBaseline({ role: 'host', port: 4000 })
   assert.equal(clientForm.statusPoll(), 'client')
   assert.equal(clientForm.getSnapshot().role.text, 'client', 'the stale host baseline no longer pins the dropdown')
@@ -75,7 +75,7 @@ test('T55: a client data source ignores the stale admin baseline; the admin sour
   // Under the admin source the baseline still decides, exactly as before:
   // a field the row layer does not store shows the admin effective value.
   const host = fakeScope({ value: { role: 'host' } })
-  const hostForm = new ZenRemoteSettingsForm(host.scope)
+  const hostForm = new AugRemoteSettingsForm(host.scope)
   hostForm.setBaseline({ role: 'host', port: 4000 })
   assert.equal(hostForm.statusPoll(), 'admin')
   assert.equal(hostForm.getSnapshot().role.text, 'host')
@@ -83,13 +83,13 @@ test('T55: a client data source ignores the stale admin baseline; the admin sour
 })
 
 test('T55: a role switch on the LIVE form drops the stale baseline display at once', async () => {
-  const { ZenRemoteSettingsForm } = await load()
+  const { AugRemoteSettingsForm } = await load()
   // The real sequence: page mounted as host, admin/status fed the baseline,
   // the user saved role:'client', the row moved — the kept status load is
   // stale host data forever. The display must follow the row, not the
   // baseline, the moment the poll source flips.
   const { scope, state } = fakeScope({ value: { role: 'host' } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline({ role: 'host', port: 4000 })
   assert.equal(form.getSnapshot().role.text, 'host')
 

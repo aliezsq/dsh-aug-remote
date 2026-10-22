@@ -1,4 +1,4 @@
-// dsh-zen-remote · T74 model-menu group side (src/client-data/model-group-side.ts
+// dsh-aug-remote · T74 model-menu group side (src/client-data/model-group-side.ts
 // + src/client/effects/model-group-side.ts)
 //
 // The 0.2.0 model menu's group sections no longer carry their group id in

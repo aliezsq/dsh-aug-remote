@@ -1,4 +1,4 @@
-// dsh-zen-remote-gateway — Cordis plugin entry
+// dsh-aug-remote-gateway — Cordis plugin entry
 // Spawns the enhanced LAN/remote PWA gateway (lib/lan-gate-server.cjs) as an
 // isolated child process, reverse-proxying the local DSH Web UI with:
 //   - secure remote access (first-visit approval, one-token-per-browser, rate limit)
@@ -9,7 +9,7 @@ import { readFileConfig, resolveConfig } from './lib/config.js'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
-export const name = 'dsh-zen-remote-gateway'
+export const name = 'dsh-aug-remote-gateway'
 // `connection` (both DSH versions provide it — unlike 0.1.2-only services such
 // as uiWorkspace) lets the host side read the browser-auth token URL, so
 // adding it here does not stop the plugin activating on 0.1.1.
@@ -127,9 +127,9 @@ export function apply(ctx, config) {
         return
       }
       handle.done.then((outcome) => {
-        console.log(`[dsh-zen-remote-gateway] gateway exited code=${outcome.exitCode} signal=${outcome.signal}`)
+        console.log(`[dsh-aug-remote-gateway] gateway exited code=${outcome.exitCode} signal=${outcome.signal}`)
       }).catch((err) => {
-        console.error(`[dsh-zen-remote-gateway] spawn failed: ${String(err && err.message || err)}`)
+        console.error(`[dsh-aug-remote-gateway] spawn failed: ${String(err && err.message || err)}`)
       })
       if (timer) {
         // 子进程输出读两拍（T17b-fix）：1.5s 的一拍是老习惯，但网关遇到端口
@@ -145,8 +145,8 @@ export function apply(ctx, config) {
           const collected = handle && handle.collected
           if (!collected) return
           const streams = [
-            ['stdout', (text) => console.log(`[dsh-zen-remote-gateway] ${text}`)],
-            ['stderr', (text) => console.error(`[dsh-zen-remote-gateway] stderr: ${text}`)],
+            ['stdout', (text) => console.log(`[dsh-aug-remote-gateway] ${text}`)],
+            ['stderr', (text) => console.error(`[dsh-aug-remote-gateway] stderr: ${text}`)],
           ]
           for (const [stream, log] of streams) {
             const collector = collected[stream]
@@ -160,7 +160,7 @@ export function apply(ctx, config) {
         timer.timeout(drainOnce, 4500)
       }
     } catch (err) {
-      console.error(`[dsh-zen-remote-gateway] ${String(err && err.message || err)}`)
+      console.error(`[dsh-aug-remote-gateway] ${String(err && err.message || err)}`)
     }
   }
 

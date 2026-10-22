@@ -1,4 +1,4 @@
-// dsh-zen-remote · T72 the model sheet on 0.2.0-rc.2: the second pane as a
+// dsh-aug-remote · T72 the model sheet on 0.2.0-rc.2: the second pane as a
 // bottom sheet, and the search box that must not pop the phone keyboard
 //
 // - the CSS half: composer.css.ts's MODEL_MENU body form accepts BOTH roles

@@ -1,4 +1,4 @@
-/* dsh-zen-remote · the better-sidebar adapter (PB-12, widened to 0.26.0 by PB-15)
+/* dsh-aug-remote · the better-sidebar adapter (PB-12, widened to 0.26.0 by PB-15)
  *
  * Drives the BUILT lib/adapters/* + the framework halves over real
  * sockets. Layers:
@@ -34,7 +34,7 @@ const PLUGIN_SOURCES = [
 /** Scratch space for the server-side share store — OUTSIDE the repository
  * (a store file in the repo root once landed in the commit staging by
  * accident; PB-13 fix). */
-const TMP_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-bs-'))
+const TMP_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-bs-'))
 process.on('exit', () => { try { fs.rmSync(TMP_ROOT, { recursive: true, force: true }) } catch { /* best effort */ } })
 
 const importLib = async (name) => import(pathToFileURL(path.join(__dirname, '..', 'lib', name)).href)
@@ -527,13 +527,13 @@ async function startServerSide({ consent = true, loopbackHits, loopbackHeaders, 
   return {
     loopbackHits,
     pluginPost: (pluginPath, query, { method = 'POST', body } = {}) =>
-      fetch(`http://127.0.0.1:${port}/_dsh/zen-remote/relay/v1/plugin`, {
+      fetch(`http://127.0.0.1:${port}/_dsh/aug-remote/relay/v1/plugin`, {
         method: 'POST',
         headers: {
-          'x-zen-remote-secret': 's'.repeat(64),
-          'x-zen-remote-via': 'gateway',
-          'x-zen-remote-role': 'desktop-client',
-          'x-zen-remote-device': 'dev-1',
+          'x-aug-remote-secret': 's'.repeat(64),
+          'x-aug-remote-via': 'gateway',
+          'x-aug-remote-role': 'desktop-client',
+          'x-aug-remote-device': 'dev-1',
           'x-zr-plugin': 'dsh-better-sidebar',
           'x-zr-plugin-version': '0.25.0',
           'x-zr-plugin-digest': adapter.digest,

@@ -1,4 +1,4 @@
-/* dsh-zen-remote · T22b relay frame filters (src/relay-filter.ts)
+/* dsh-aug-remote · T22b relay frame filters (src/relay-filter.ts)
  *
  * The frame shapes below are pinned to the generated codecs in the 0.2.0
  * `lib/typert.remote-client.js` of the workspace / session / job controller

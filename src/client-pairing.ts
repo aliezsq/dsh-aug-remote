@@ -19,7 +19,7 @@ export const CLAIM_PATH = '/lan-gate/pair/claim-desktop'
 
 /** The relay ping path the client backend probes (the gateway admits this
  * prefix for desktop-client devices and forwards to the host relay route). */
-export const RELAY_PING_PATH = '/_dsh/zen-remote/relay/ping'
+export const RELAY_PING_PATH = '/_dsh/aug-remote/relay/ping'
 
 /** Why an address did not normalize: unparseable / wrong shape, or a plain
  * `http:` URL whose host is not one of the private-network allowances. */

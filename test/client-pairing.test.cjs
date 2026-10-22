@@ -1,4 +1,4 @@
-/* dsh-zen-remote · client pairing logic (src/client-pairing.ts, T16)
+/* dsh-aug-remote · client pairing logic (src/client-pairing.ts, T16)
  *
  * Pure decisions only: the server-address normalizer's private-network
  * allowances (each tested at BOTH range edges, plus the nearest outside

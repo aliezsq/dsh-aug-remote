@@ -1,4 +1,4 @@
-/* dsh-zen-remote · admin routes (src/admin-routes.ts, T14)
+/* dsh-aug-remote · admin routes (src/admin-routes.ts, T14)
  *
  * The settings-surface admin API: the REAL createAdminHandler runs over a
  * real node:http socket, in front of a mock gateway that records everything
@@ -106,7 +106,7 @@ function sameOrigin(port) {
 }
 
 test.before(async () => {
-  process.env.DSH_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-admin-'))
+  process.env.DSH_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-admin-'))
   admin = await import(ADMIN_URL)
   ;({ server: gateway, seen } = await startMockGateway())
   gwPort = gateway.address().port
@@ -151,7 +151,7 @@ test('GET status relays the gateway payload and adds the live config', async () 
 })
 
 test('a via-gateway caller may read status (pairing stripped) but never POST', async () => {
-  const via = { 'x-zen-remote-via': 'gateway' }
+  const via = { 'x-aug-remote-via': 'gateway' }
   const res = await request(adminPort, { method: 'GET', path: admin.ADMIN_STATUS_ROUTE, headers: via })
   assert.equal(res.status, 200)
   const body = JSON.parse(res.body)
@@ -215,8 +215,8 @@ test('POST push-test sends the fixed copy through the gateway', async () => {
   assert.equal(sent.url, '/pwa/push/send')
   const payload = JSON.parse(sent.body)
   assert.equal(payload.title, 'DSH 测试推送')
-  assert.equal(payload.body, '这是一条来自 dsh-zen-remote 设置页的测试通知')
-  assert.equal(payload.tag, 'dsh-zen-remote-test')
+  assert.equal(payload.body, '这是一条来自 dsh-aug-remote 设置页的测试通知')
+  assert.equal(payload.tag, 'dsh-aug-remote-test')
 })
 
 test('push-test copy follows the live config lang, not an apply-time snapshot', async () => {
@@ -238,7 +238,7 @@ test('push-test copy follows the live config lang, not an apply-time snapshot', 
     assert.equal(en.status, 200)
     const payloadEn = JSON.parse(seen[seen.length - 1].body)
     assert.equal(payloadEn.title, 'DSH Test Push')
-    assert.equal(payloadEn.tag, 'dsh-zen-remote-test')
+    assert.equal(payloadEn.tag, 'dsh-aug-remote-test')
   } finally {
     await closeServer(server)
   }
@@ -405,7 +405,7 @@ const { createShareStore } = require('../lib/share-store.js')
  * mounts a sessionQuery fake answering those headers (null = not found,
  * mirroring observeSession's throw), each lease recording its release. */
 function makeShareParts(overrides = {}) {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-admin-shares-'))
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-admin-shares-'))
   const store = createShareStore({ file: path.join(home, 'shares.json'), idleHours: 48 })
   const invokes = []
   const released = []
@@ -736,7 +736,7 @@ test('shares routes admit gateway-forwarded requests: a via-gateway device may l
   try {
     // The shape the gateway forwards: its own via marker plus Origin/Host
     // rewritten onto the upstream origin — which passes sameOriginPost.
-    const viaHeaders = { 'x-zen-remote-via': 'gateway', ...sameOrigin(port) }
+    const viaHeaders = { 'x-aug-remote-via': 'gateway', ...sameOrigin(port) }
     const get = await request(port, { method: 'GET', path: admin.ADMIN_SHARES_ROUTE, headers: viaHeaders })
     assert.equal(get.status, 200)
     assert.equal(JSON.parse(get.body).ok, true)
@@ -797,7 +797,7 @@ test('PB-5 GET plugin-bridge: shape, order, hasServerScope, and consent read LIV
     pluginBridge: { registry, getConsent: () => consentBox.map },
   })
   try {
-    const res = await request(port, { method: 'GET', path: '/_dsh/zen-remote/admin/plugin-bridge' })
+    const res = await request(port, { method: 'GET', path: '/_dsh/aug-remote/admin/plugin-bridge' })
     assert.equal(res.status, 200)
     const body = JSON.parse(res.body)
     assert.equal(body.ok, true)
@@ -812,7 +812,7 @@ test('PB-5 GET plugin-bridge: shape, order, hasServerScope, and consent read LIV
     // The consent read is LIVE: flipping the row-side map (the volatile
     // knob's stand-in) shows up on the very next request, no re-wiring.
     consentBox.map = {}
-    const second = JSON.parse((await request(port, { method: 'GET', path: '/_dsh/zen-remote/admin/plugin-bridge' })).body)
+    const second = JSON.parse((await request(port, { method: 'GET', path: '/_dsh/aug-remote/admin/plugin-bridge' })).body)
     assert.deepEqual(second.value.plugins.map((p) => [p.plugin, p.consent]), [['acme-tasks', false], ['zeta-panel', false]])
   } finally { await closeServer(server) }
 })
@@ -827,16 +827,16 @@ test('PB-5 GET plugin-bridge: the existing rules hold — via-gateway refused, n
   try {
     // The listing feeds a MANAGEMENT surface, so the pair/action rule
     // applies: a forwarded remote request is refused outright.
-    const via = await request(port, { method: 'GET', path: '/_dsh/zen-remote/admin/plugin-bridge', headers: { 'x-zen-remote-via': 'gateway' } })
+    const via = await request(port, { method: 'GET', path: '/_dsh/aug-remote/admin/plugin-bridge', headers: { 'x-aug-remote-via': 'gateway' } })
     assert.equal(via.status, 403)
     assert.equal(JSON.parse(via.body).error.code, 'via-gateway')
     // Read-only: anything but GET answers 405.
-    const post = await request(port, { method: 'POST', path: '/_dsh/zen-remote/admin/plugin-bridge', headers: sameOrigin(port) })
+    const post = await request(port, { method: 'POST', path: '/_dsh/aug-remote/admin/plugin-bridge', headers: sameOrigin(port) })
     assert.equal(post.status, 405)
   } finally { await closeServer(server) }
 
   // The wired handler's composition carries NO bridge: the route answers
   // 404 like any unknown admin path.
-  const none = await request(adminPort, { method: 'GET', path: '/_dsh/zen-remote/admin/plugin-bridge' })
+  const none = await request(adminPort, { method: 'GET', path: '/_dsh/aug-remote/admin/plugin-bridge' })
   assert.equal(none.status, 404)
 })

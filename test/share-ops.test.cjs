@@ -1,4 +1,4 @@
-/* dsh-zen-remote · share ops (src/share-ops.ts, T33a)
+/* dsh-aug-remote · share ops (src/share-ops.ts, T33a)
  *
  * The two pure host-side operations on the shared table, driven with a REAL
  * createShareStore over a temp file (their whole point is how they move the
@@ -21,7 +21,7 @@ const path = require('node:path')
 const { restoreBusy, onSessionCreated } = require('../lib/share-ops.js')
 const { createShareStore } = require('../lib/share-store.js')
 
-const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-share-ops-'))
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-share-ops-'))
 process.on('exit', () => { try { fs.rmSync(ROOT, { recursive: true, force: true }) } catch { /* best effort */ } })
 
 let fileCounter = 0

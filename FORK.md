@@ -47,7 +47,7 @@ git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
 The `release` workflow builds, checks that `lib/` matches `src/`, runs
-`pnpm verify` and `pnpm test`, then attaches `dsh-zen-remote-<version>.tgz` to
+`pnpm verify` and `pnpm test`, then attaches `dsh-aug-remote-<version>.tgz` to
 the GitHub Release.
 
 ## Installing a release
@@ -55,23 +55,23 @@ the GitHub Release.
 - **Host** (`dsh web`, profile `web`):
   ```bash
   cd ~/.dsh/profiles/web/node_modules
-  mv dsh-zen-remote dsh-zen-remote.bak
-  mkdir dsh-zen-remote
-  tar -xzf /path/to/dsh-zen-remote-X.Y.Z.tgz -C dsh-zen-remote --strip-components=1
+  mv dsh-aug-remote dsh-aug-remote.bak
+  mkdir dsh-aug-remote
+  tar -xzf /path/to/dsh-aug-remote-X.Y.Z.tgz -C dsh-aug-remote --strip-components=1
   systemctl restart dsh-web
   ```
 - **Windows desktop client**:
   ```powershell
-  powershell -ExecutionPolicy Bypass -File .\scripts\install-client.ps1 -Package .\dsh-zen-remote-X.Y.Z.tgz
+  powershell -ExecutionPolicy Bypass -File .\scripts\install-client.ps1 -Package .\dsh-aug-remote-X.Y.Z.tgz
   ```
   (quit the desktop app first; roll back with `rollback-client.ps1`).
 
 Both ends must run the **same build**: the relay protocol and the access tables
 are versioned together.
 
-## Do not publish to npm as `dsh-zen-remote`
+## Do not publish to npm as `dsh-aug-remote`
 
 The npm name belongs to upstream. If this fork ever needs an npm package, use a
-scope (e.g. `@yourscope/dsh-zen-remote`), update `package.json`, the
+scope (e.g. `@yourscope/dsh-aug-remote`), update `package.json`, the
 `cordis.patch.yml` insert name and the profile dependency together, and expect
 the plugin's internal name strings (~90 references) to need a pass.

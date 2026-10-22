@@ -5,7 +5,7 @@
  * Browser-import-free so scripts/check-shares.mjs drives it directly with a
  * fake fetch:
  *
- * - `parseSharesBody(body, now)` maps the `GET /_dsh/zen-remote/admin/shares`
+ * - `parseSharesBody(body, now)` maps the `GET /_dsh/aug-remote/admin/shares`
  *   body (T33a: `{ ok, shares:[{ sessionId, sharedAt, lastActivityAt, busy,
  *   remainingMs(null=忙碌), viewers, title }] }`) into tolerant view entries,
  *   each stamped with the parse time so `describeShare` can let the idle
@@ -31,7 +31,7 @@ import { createLatestGate } from './settings-form.ts'
 import { zh } from '../client/locales.ts'
 
 /** Same-origin admin shares route (host half: T33a, src/admin-routes.ts). */
-export const ADMIN_SHARES_ROUTE = '/_dsh/zen-remote/admin/shares'
+export const ADMIN_SHARES_ROUTE = '/_dsh/aug-remote/admin/shares'
 
 /** One shared session as the parts render it. `asOf` is the parse time that
  * anchors the local countdown decay (the wire has no such field). */

@@ -69,7 +69,7 @@ export function RemoteComposerBanner({ sessionId, status, t, setComposerBlock }:
   }, [text, sessionId, setComposerBlock])
   if (!virtual || !snap.ready || text === undefined) return null
   return (
-    <div className="zr-remote-banner" data-zen-remote="remote-banner" role="status">
+    <div className="zr-remote-banner" data-aug-remote="remote-banner" role="status">
       {text}
     </div>
   )

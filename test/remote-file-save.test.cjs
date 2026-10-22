@@ -1,4 +1,4 @@
-// dsh-zen-remote · 2.2.6 remote artifact download (src/client/remote-file-save.ts)
+// dsh-aug-remote · 2.2.6 remote artifact download (src/client/remote-file-save.ts)
 //
 // The read window is the ONLY shape that works against the host's caps: a
 // ranged read is limited by `Config.maxBytes` (2 MiB by default) and a

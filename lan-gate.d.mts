@@ -1,5 +1,5 @@
 /**
- * Type surface of lan-gate.mjs (the `dsh-zen-remote-gateway` sub-plugin),
+ * Type surface of lan-gate.mjs (the `dsh-aug-remote-gateway` sub-plugin),
  * which ships as plain JavaScript at the package root. Hand-written and
  * minimal on purpose: just enough for the main entry's
  * `ctx.plugin(gateway, …)` to typecheck — the .mjs itself is never compiled

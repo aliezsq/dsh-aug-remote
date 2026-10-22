@@ -75,11 +75,11 @@ export function registerRemoteStatusUi(
 ): void {
   ctx.effect(() => {
     const tag = document.createElement('style')
-    tag.dataset.plugin = 'dsh-zen-remote-remote-status'
+    tag.dataset.plugin = 'dsh-aug-remote-remote-status'
     tag.textContent = REMOTE_STATUS_CSS
     document.head.appendChild(tag)
     return () => { tag.remove() }
-  }, 'dsh-zen-remote: remote-status styles')
+  }, 'dsh-aug-remote: remote-status styles')
 
   ctx.slots.inject('conversation.session.header.actions', () => ctx.slots.register({
     name: 'conversation.session.header.actions',

@@ -267,7 +267,7 @@ html:not([data-zr-remote-session]) section[role="group"][data-zr-group="remote"]
      value — no host-depth assumption, no :has();
    - when the vision router (or any other <option>-rendering surface) is not
      installed, nothing matches — dead rule, zero cost;
-   - zen-remote's own surfaces are checked: our settings forms render fixed
+   - aug-remote's own surfaces are checked: our settings forms render fixed
      enum options ("web" / "desktop-client" / role kinds /
      configForm enum strings, src/client/settings/SettingsSection.tsx:641,690-701)
      and none can start with "zr~" (virtual group ids only ever exist inside

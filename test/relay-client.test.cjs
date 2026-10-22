@@ -1,4 +1,4 @@
-/* dsh-zen-remote · T23a relay client, pure logic (src/relay-client.ts)
+/* dsh-aug-remote · T23a relay client, pure logic (src/relay-client.ts)
  *
  * The client half of the relay protocol against a LOCAL fake relay server —
  * no gateway child, no share table, just the HTTP shapes the real chain
@@ -17,13 +17,13 @@ const assert = require('node:assert/strict')
 const http = require('node:http')
 const { createRelayClient, relayCredentialsDigest, volatileUpdateTouchesServerName, RelayError } = require('../lib/relay-client.js')
 
-const HANDSHAKE = '/_dsh/zen-remote/relay/v1/handshake'
-const INVOKE = '/_dsh/zen-remote/relay/v1/invoke'
-const STREAM = '/_dsh/zen-remote/relay/v1/stream'
-const UNSHARE = '/_dsh/zen-remote/relay/v1/unshare'
-const UPLOAD = '/_dsh/zen-remote/relay/v1/upload'
-const PROMPT_ATTACHMENT = '/_dsh/zen-remote/relay/v1/prompt-attachment'
-const DEVICE_NAME = '/_dsh/zen-remote/relay/v1/device/name'
+const HANDSHAKE = '/_dsh/aug-remote/relay/v1/handshake'
+const INVOKE = '/_dsh/aug-remote/relay/v1/invoke'
+const STREAM = '/_dsh/aug-remote/relay/v1/stream'
+const UNSHARE = '/_dsh/aug-remote/relay/v1/unshare'
+const UPLOAD = '/_dsh/aug-remote/relay/v1/upload'
+const PROMPT_ATTACHMENT = '/_dsh/aug-remote/relay/v1/prompt-attachment'
+const DEVICE_NAME = '/_dsh/aug-remote/relay/v1/device/name'
 
 const HANDSHAKE_OK = () => [200, { ok: true, relayProtocol: 1, serverId: 'abcd1234', serverName: '假服务器', dshVersion: '9.9.9-test', fingerprints: { algo: 'sha256' } }]
 
@@ -935,9 +935,9 @@ test('request headers stay dispatcher-safe: no content-length or connection-mana
     assert.equal(headers.accept, 'application/json')
   }
   assert.deepEqual(captured.map((c) => new URL(c.url).pathname), [
-    '/_dsh/zen-remote/relay/v1/handshake',
-    '/_dsh/zen-remote/relay/v1/invoke',
-    '/_dsh/zen-remote/relay/v1/stream',
+    '/_dsh/aug-remote/relay/v1/handshake',
+    '/_dsh/aug-remote/relay/v1/invoke',
+    '/_dsh/aug-remote/relay/v1/stream',
   ])
 })
 

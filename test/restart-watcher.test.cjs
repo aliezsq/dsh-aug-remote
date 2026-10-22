@@ -1,4 +1,4 @@
-/* dsh-zen-remote · restart watcher (src/restart-watcher.ts → lib/restart-watcher.js)
+/* dsh-aug-remote · restart watcher (src/restart-watcher.ts → lib/restart-watcher.js)
  *
  * T17: every Config field is volatile, so the "needs restart" semantics ride
  * a fingerprint comparison instead of the volatility flag. T17b gave that

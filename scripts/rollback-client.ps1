@@ -5,7 +5,7 @@
 #
 # Restores the newest node_modules backup made by install-client.ps1 and the
 # newest profile package.json backup next to it. Works for both the current
-# dsh-aug-remote folder and a legacy dsh-zen-remote one.
+# dsh-aug-remote folder and a legacy dsh-aug-remote one.
 
 param(
   [string]$Profile = ""
@@ -23,7 +23,7 @@ $hits = @(
   Get-ChildItem -LiteralPath $profilesRoot -Directory |
     Where-Object {
       (Test-Path -LiteralPath (Join-Path $_.FullName 'node_modules\dsh-aug-remote')) -or
-      (Test-Path -LiteralPath (Join-Path $_.FullName 'node_modules\dsh-zen-remote')) -or
+      (Test-Path -LiteralPath (Join-Path $_.FullName 'node_modules\dsh-aug-remote')) -or
       @(Get-ChildItem -LiteralPath (Join-Path $_.FullName 'node_modules') -Filter 'dsh-aug-remote.bak-*' -Directory -ErrorAction SilentlyContinue).Count -gt 0
     }
 )
@@ -39,10 +39,10 @@ if ($running) { Write-Warning "DSH may still be running ($($running.ProcessName)
 $bak = Get-ChildItem -LiteralPath $nm -Filter 'dsh-aug-remote.bak-*' -Directory -ErrorAction SilentlyContinue |
   Sort-Object LastWriteTime -Descending | Select-Object -First 1
 if ($null -eq $bak) {
-  $bak = Get-ChildItem -LiteralPath $nm -Filter 'dsh-zen-remote.bak-*' -Directory -ErrorAction SilentlyContinue |
+  $bak = Get-ChildItem -LiteralPath $nm -Filter 'dsh-aug-remote.bak-*' -Directory -ErrorAction SilentlyContinue |
     Sort-Object LastWriteTime -Descending | Select-Object -First 1
 }
-if ($null -eq $bak) { throw "No dsh-aug-remote.bak-* / dsh-zen-remote.bak-* folder to restore" }
+if ($null -eq $bak) { throw "No dsh-aug-remote.bak-* / dsh-aug-remote.bak-* folder to restore" }
 
 $current = Join-Path $nm 'dsh-aug-remote'
 if (Test-Path -LiteralPath $current) {

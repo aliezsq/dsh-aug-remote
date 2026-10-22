@@ -9,7 +9,7 @@
  * one of those two routes and whose `sessionId` parameter carries a virtual
  * id (`zr~` prefix, virtual-id.ts's skeleton — the strict parse happens in
  * the backend route) is rewritten to the sub-client relay route
- * `/_dsh/zen-remote/client/http/<route>?<original query>`, `init` (the
+ * `/_dsh/aug-remote/client/http/<route>?<original query>`, `init` (the
  * abort signal) passing through untouched. Every other request — local
  * sessions, any other path, cross-origin, non-GET — reaches the original
  * fetch unchanged, so a host-role deployment (whose session ids are never
@@ -26,7 +26,7 @@
  * src/relay-access.ts.
  */
 /** Prefix of the sub-client backend route the rewritten calls land on. */
-export declare const CLIENT_HTTP_ROUTE_PREFIX = "/_dsh/zen-remote/client/http/";
+export declare const CLIENT_HTTP_ROUTE_PREFIX = "/_dsh/aug-remote/client/http/";
 /** The fetch face this module wraps; injectable so tests drive a fake. */
 export interface FetchHost {
     fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;

@@ -201,11 +201,11 @@ export function registerRemoteShareUi(
 ): void {
   ctx.effect(() => {
     const tag = document.createElement('style')
-    tag.dataset.plugin = 'dsh-zen-remote-remote-share'
+    tag.dataset.plugin = 'dsh-aug-remote-remote-share'
     tag.textContent = REMOTE_SHARE_CSS
     document.head.appendChild(tag)
     return () => { tag.remove() }
-  }, 'dsh-zen-remote: remote-share styles')
+  }, 'dsh-aug-remote: remote-share styles')
 
   ctx.slots.inject('conversation.session.header.actions', () => ctx.slots.register({
     name: 'conversation.session.header.actions',
@@ -232,7 +232,7 @@ export function registerRemoteShareUi(
   ctx.inject(['configForms'], (formsCtx) => {
     const scope = formsCtx.configForms.get(SETTINGS_ENTRY_ID)
     const off = wireSharesRole(scope, store, { onVerdict: () => { snapshotAnswered = true } })
-    formsCtx.effect(() => off, 'dsh-zen-remote: remote-share role')
+    formsCtx.effect(() => off, 'dsh-aug-remote: remote-share role')
   })
   void probeClientConfigRole().then((answer) => {
     // A definite answer wires the role; a FAILED probe wires nothing —

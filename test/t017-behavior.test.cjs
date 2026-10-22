@@ -1,4 +1,4 @@
-/* dsh-zen-remote · T-017 new-behavior tests
+/* dsh-aug-remote · T-017 new-behavior tests
  * Real coverage for the three 0.1.7 adaptations whose previous guards were
  * source-regex only (review finding #3): the main-view session derivation,
  * the turn-fold suppression state machine, and the desktop-shell gate. Each

@@ -1,5 +1,5 @@
 /**
- * The dsh-zen-remote plugin row's settings block on the Plugins manager
+ * The dsh-aug-remote plugin row's settings block on the Plugins manager
  * (T15 + T15-fix + T16 + T17): the staged row fields inside the official
  * settings-form frame ending in its one save control, and BELOW the form —
  * outside it, so they still render when the configuration namespace is not
@@ -15,7 +15,7 @@
  * client deployment those routes do not exist, and a stale kept body would
  * pin the page to the old role. The poll choice waits out the snapshot's
  * loading state — and the probe, when the row cannot answer — for the same
- * reason. Only field edits stage and save through `ZenRemoteSettingsForm`.
+ * reason. Only field edits stage and save through `AugRemoteSettingsForm`.
  *
  * Status refreshes never clear what is already on screen (T15-fix 1): a
  * failed refresh keeps the last ready data and says so in a banner — only a
@@ -32,12 +32,12 @@
  * summary view renders its one-liner alone and never fetches a thing.
  */
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots';
-import type { ZenRemoteSettingsForm } from '../../client-data/settings-form.ts';
+import type { AugRemoteSettingsForm } from '../../client-data/settings-form.ts';
 import { NS } from '../locales.ts';
 import type { SharesStore } from '../../client-data/shares.ts';
 export interface SettingsSectionProps extends PropsRuntime<'plugins.row.config'>, PropsLocale<typeof NS> {
     /** The staged configuration form (injected share). */
-    config: ZenRemoteSettingsForm;
+    config: AugRemoteSettingsForm;
     /** The shared shares store (injected share, T33b) — the same singleton the
      * title-row icon and the session menu read. */
     shares: SharesStore;

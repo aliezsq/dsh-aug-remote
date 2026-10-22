@@ -1,4 +1,4 @@
-/* dsh-zen-remote · the WebSocket byte tunnel's server half (PB-10)
+/* dsh-aug-remote · the WebSocket byte tunnel's server half (PB-10)
  *
  * Drives the BUILT lib/plugin-tunnel.js directly (createPluginTunnel) over
  * real sockets: the upstream is a raw net server that records every byte a
@@ -21,7 +21,7 @@ const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 const { request } = require('./util.cjs')
 
-const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-tunnel-'))
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-tunnel-'))
 process.on('exit', () => { try { fs.rmSync(ROOT, { recursive: true, force: true }) } catch { /* best effort */ } })
 
 const DECL = {
@@ -98,11 +98,11 @@ async function makeTunnel({ consent = {}, ...overrides } = {}) {
 /** One open request (raw fetch so the NDJSON stream can be consumed line by
  * line). Returns the response plus a line reader. */
 async function openTunnel(base, { device = 'dev-1', path = '/panel/ws', plugin = 'ws-panel', version = '1.0.0', digest, query = 'sessionId=session-shared', headers, head, rawPath, signal } = {}) {
-  const res = await fetch(`${base}${rawPath ?? '/_dsh/zen-remote/relay/v1/plugin-tunnel/open'}`, {
+  const res = await fetch(`${base}${rawPath ?? '/_dsh/aug-remote/relay/v1/plugin-tunnel/open'}`, {
     method: 'POST',
     ...(signal !== undefined ? { signal } : {}),
     headers: {
-      'x-zen-remote-device': device,
+      'x-aug-remote-device': device,
       'x-zr-plugin': plugin,
       'x-zr-plugin-version': version,
       'x-zr-plugin-digest': digest ?? declaredDigest(),
@@ -114,7 +114,7 @@ async function openTunnel(base, { device = 'dev-1', path = '/panel/ws', plugin =
   })
   return {
     status: res.status,
-    marker: res.headers.get('x-zen-remote-error'),
+    marker: res.headers.get('x-aug-remote-error'),
     res,
     lines: readLines(res),
   }
@@ -288,7 +288,7 @@ test('PB-10 tunnel: device binding, ordered sends, out-of-order closes, budget o
   const send = (tunnelId, seq, device = 'dev-1') =>
     fetch(`${base}/send`, {
       method: 'POST',
-      headers: { 'x-zen-remote-device': device, 'x-zr-tunnel': tunnelId, 'x-zr-seq': String(seq), 'content-type': 'application/octet-stream' },
+      headers: { 'x-aug-remote-device': device, 'x-zr-tunnel': tunnelId, 'x-zr-seq': String(seq), 'content-type': 'application/octet-stream' },
       body: 'x',
     })
   try {
@@ -345,9 +345,9 @@ test('PB-10 tunnel: device binding, ordered sends, out-of-order closes, budget o
     assert.equal(recovery.status, 200, 'a freed slot is reusable')
 
     // Close is idempotent and answers ok even for an unknown id.
-    const closed = await fetch(`${base}/close`, { method: 'POST', headers: { 'x-zen-remote-device': 'dev-1', 'x-zr-tunnel': tunnelId } })
+    const closed = await fetch(`${base}/close`, { method: 'POST', headers: { 'x-aug-remote-device': 'dev-1', 'x-zr-tunnel': tunnelId } })
     assert.equal(closed.status, 200)
-    const again = await fetch(`${base}/close`, { method: 'POST', headers: { 'x-zen-remote-device': 'dev-1', 'x-zr-tunnel': tunnelId } })
+    const again = await fetch(`${base}/close`, { method: 'POST', headers: { 'x-aug-remote-device': 'dev-1', 'x-zr-tunnel': tunnelId } })
     assert.equal(again.status, 200)
   } finally {
     await stop()

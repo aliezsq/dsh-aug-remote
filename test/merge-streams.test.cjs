@@ -1,4 +1,4 @@
-/* dsh-zen-remote · global-stream mergers (src/merge-streams.ts, T23b-2 + T23b2-fix)
+/* dsh-aug-remote · global-stream mergers (src/merge-streams.ts, T23b-2 + T23b2-fix)
  *
  * Pure state machines: no gateway, no relay, no network — frames in, frames
  * out. Frame shapes follow the verified 0.2.0 generated codecs (the same

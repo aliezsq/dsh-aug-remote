@@ -1,4 +1,4 @@
-// dsh-zen-remote · T67 the mobile info-card remote-access row
+// dsh-aug-remote · T67 the mobile info-card remote-access row
 //
 // The「远程访问」row in the phone session-info sheet, driven at the two
 // layers Node can reach (MobileSessionInfo.tsx is JSX — Node's type

@@ -150,14 +150,14 @@ export function apply(ctx: ClientContext): void {
   // 改写与隐藏在它里面一样必要。改写只碰「同源 + 精确两条路径 + zr~ 虚拟
   // 会话 id」的 GET（remote-fetch.ts），宿主角色的桌面端（会话 id 永非虚拟）
   // 逐字节原样放行；标记属性只在虚拟会话打开时出现，卸载时还原。
-  ctx.effect(() => installRemoteApiFetch(window), 'dsh-zen-remote: remote api fetch')
+  ctx.effect(() => installRemoteApiFetch(window), 'dsh-aug-remote: remote api fetch')
   installRemoteSessionGuard(ctx)
   // 2.2.6 补：远程会话里「拖文件进输入框」此前会插成 `@C:\...` 本机路径——桌面壳的
   // host-path bridge 让 composer 优先插路径而不是上传，客户端路径在服务端不存在，
   // 于是文件永远读不到。这里把 bridge 的 pathFor 在远程会话下改成 undefined，
   // composer 自己的下一步就会把文件当普通上传处理，走 T51 已就绪的中继上传。
   // 包一层 Proxy、其它成员原样透传；本地会话与主服务端完全不变。
-  ctx.effect(() => installHostPathBridgeGuard(), 'dsh-zen-remote: host path bridge guard')
+  ctx.effect(() => installHostPathBridgeGuard(), 'dsh-aug-remote: host path bridge guard')
   // T74 模型选单分组按会话归属显示：0.2.0 的 MenuGroup 的 aria-labelledby 只剩
   // useId（分组 id 不再出现在标记里），旧的 zr~ 前缀选择器失效——改为 effect 给
   // 分组打 data-zr-group 标（分类依据是虚拟分组名开头的不可见标记，见
@@ -211,8 +211,8 @@ export function apply(ctx: ClientContext): void {
 
   ctx.effect(() => {
     const tag = document.createElement('style')
-    tag.dataset.plugin = 'dsh-zen-remote'
-    tag.dataset.pluginCss = 'dsh-zen-remote/mobile.css'
+    tag.dataset.plugin = 'dsh-aug-remote'
+    tag.dataset.pluginCss = 'dsh-aug-remote/mobile.css'
     tag.textContent = MOBILE_CSS
     document.head.appendChild(tag)
     return () => {
@@ -348,7 +348,7 @@ export function apply(ctx: ClientContext): void {
       // runs on a user tap, by which time the service is registered.
       openSession: (id: SessionId) => {
         const ui = ctx.get('uiWorkspace') as UiWorkspaceLike | undefined
-        if (ui === undefined) console.warn('[dsh-zen-remote] uiWorkspace service unavailable; cannot open session', id)
+        if (ui === undefined) console.warn('[dsh-aug-remote] uiWorkspace service unavailable; cannot open session', id)
         else ui.openSession(id)
       },
       renameSession: (id: SessionId, title: string) => ctx.sessions.binding(id)?.session.rename(title),
@@ -412,14 +412,14 @@ export function apply(ctx: ClientContext): void {
       // Same uiWorkspace.openSession binding as the session-info sheet above.
       openSession: (id: SessionId) => {
         const ui = ctx.get('uiWorkspace') as UiWorkspaceLike | undefined
-        if (ui === undefined) console.warn('[dsh-zen-remote] uiWorkspace service unavailable; cannot open session', id)
+        if (ui === undefined) console.warn('[dsh-aug-remote] uiWorkspace service unavailable; cannot open session', id)
         else ui.openSession(id)
       },
       // uiWorkspace 懒查：回调是用户点击才跑，服务那时必已注册（inject 不含
       // uiWorkspace，启动时可能先于它注册，不能启动查一次就用）。
       startSession: (workspaceId?: WorkspaceId) => {
         const ui = ctx.get('uiWorkspace') as UiWorkspaceLike | undefined
-        if (ui === undefined) console.warn('[dsh-zen-remote] uiWorkspace service unavailable; cannot start a session')
+        if (ui === undefined) console.warn('[dsh-aug-remote] uiWorkspace service unavailable; cannot start a session')
         else ui.startSession(workspaceId)
       },
       // S5 session-log chip — the same service call MobileDrawerFooter uses.

@@ -1,4 +1,4 @@
-// dsh-zen-remote · 2.3.0 host-side prompt-attachment store
+// dsh-aug-remote · 2.3.0 host-side prompt-attachment store
 // (src/prompt-attachments.ts)
 //
 // ZCode's model, adapted to DSH: a prompt's client-local file is materialized

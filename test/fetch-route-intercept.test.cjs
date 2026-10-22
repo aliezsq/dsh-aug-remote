@@ -1,4 +1,4 @@
-/* dsh-zen-remote · the exact-fetch-route interception (src/fetch-route-intercept.ts, T51 + T51-fix)
+/* dsh-aug-remote · the exact-fetch-route interception (src/fetch-route-intercept.ts, T51 + T51-fix)
  *
  * The fake connection mirrors the ONE surface the wrap depends on: the
  * host's `fetchRoutes` Map — pathname → {methods, requestBody, fetch} (RT

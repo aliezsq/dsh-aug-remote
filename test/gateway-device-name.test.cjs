@@ -1,12 +1,12 @@
-/* dsh-zen-remote · T59 device-name sync, gateway half (lib/lan-gate-server.cjs)
+/* dsh-aug-remote · T59 device-name sync, gateway half (lib/lan-gate-server.cjs)
  *
  * The gateway learns a device name at pairing and every rename updates the
  * device table. Two things are pinned here:
- *   1. every desktop-client forward carries `x-zen-remote-device-name`
+ *   1. every desktop-client forward carries `x-aug-remote-device-name`
  *      (percent-encoded current table name), and a client-supplied header of
- *      the same name never survives — the x-zen-remote-* namespace belongs
+ *      the same name never survives — the x-aug-remote-* namespace belongs
  *      to the gateway;
- *   2. POST /_dsh/zen-remote/relay/v1/device/name is answered by the
+ *   2. POST /_dsh/aug-remote/relay/v1/device/name is answered by the
  *      GATEWAY itself (never forwarded upstream): a desktop-client device
  *      renames only ITSELF (no id in the body to forge), 1–40 chars after
  *      trim, and the new name is visible in the table (status) and on the
@@ -33,32 +33,32 @@ async function boot() {
   }
 }
 
-const DEVICE_NAME_PATH = '/_dsh/zen-remote/relay/v1/device/name'
+const DEVICE_NAME_PATH = '/_dsh/aug-remote/relay/v1/device/name'
 
 test('T59 gateway: desktop-client forwards carry the percent-encoded device-name header; a forged one is dropped', async () => {
   const { stop, target } = await boot()
   try {
     const { token } = await pairDesktop(PORT, '书房的台式机')
     // The client FORGES both the name header and (harmless) junk in the
-    // x-zen-remote-* namespace; the gateway must replace, never forward.
+    // x-aug-remote-* namespace; the gateway must replace, never forward.
     const res = await request(PORT, {
       method: 'POST',
-      path: '/_dsh/zen-remote/relay/v1/handshake',
+      path: '/_dsh/aug-remote/relay/v1/handshake',
       headers: {
         ...REMOTE_HEADERS,
         authorization: `Bearer ${token}`,
         'content-type': 'application/json',
-        'x-zen-remote-device': 'forged-id',
-        'x-zen-remote-device-name': 'forged-name',
+        'x-aug-remote-device': 'forged-id',
+        'x-aug-remote-device-name': 'forged-name',
       },
       body: {},
     })
     assert.strictEqual(res.status, 200)
-    const upstream = target.seen.find((row) => String(row.path).split('?')[0] === '/_dsh/zen-remote/relay/v1/handshake')
+    const upstream = target.seen.find((row) => String(row.path).split('?')[0] === '/_dsh/aug-remote/relay/v1/handshake')
     assert.notEqual(upstream, undefined, 'the forward reached the upstream')
-    assert.strictEqual(upstream.headers['x-zen-remote-device-name'], encodeURIComponent('书房的台式机'), 'the gateway wrote ITS table name, encoded')
-    assert.strictEqual(upstream.headers['x-zen-remote-device'], target.seen.length >= 0 ? upstream.headers['x-zen-remote-device'] : '', 'sanity')
-    assert.notEqual(upstream.headers['x-zen-remote-device'], 'forged-id', 'the forged device id was dropped too')
+    assert.strictEqual(upstream.headers['x-aug-remote-device-name'], encodeURIComponent('书房的台式机'), 'the gateway wrote ITS table name, encoded')
+    assert.strictEqual(upstream.headers['x-aug-remote-device'], target.seen.length >= 0 ? upstream.headers['x-aug-remote-device'] : '', 'sanity')
+    assert.notEqual(upstream.headers['x-aug-remote-device'], 'forged-id', 'the forged device id was dropped too')
   } finally { await stop() }
 })
 
@@ -87,12 +87,12 @@ test('T59 gateway: device/name renames the CALLER only, validates the name, and 
     // The very next forward carries the new name.
     await request(PORT, {
       method: 'POST',
-      path: '/_dsh/zen-remote/relay/v1/handshake',
+      path: '/_dsh/aug-remote/relay/v1/handshake',
       headers: { ...REMOTE_HEADERS, authorization: `Bearer ${own.token}`, 'content-type': 'application/json' },
       body: {},
     })
-    const forward = target.seen.filter((row) => String(row.path).split('?')[0] === '/_dsh/zen-remote/relay/v1/handshake').pop()
-    assert.strictEqual(forward.headers['x-zen-remote-device-name'], encodeURIComponent('书房的新名字'))
+    const forward = target.seen.filter((row) => String(row.path).split('?')[0] === '/_dsh/aug-remote/relay/v1/handshake').pop()
+    assert.strictEqual(forward.headers['x-aug-remote-device-name'], encodeURIComponent('书房的新名字'))
 
     // Name validation (T59-fix semantics): empty after the trim is refused;
     // an over-cap name is TRUNCATED to 40 whole characters, not refused.
@@ -180,13 +180,13 @@ test('T59-fix: a lone-surrogate rename is answered sanitized — the gateway liv
     // name riding the header.
     const alive = await request(PORT, {
       method: 'POST',
-      path: '/_dsh/zen-remote/relay/v1/handshake',
+      path: '/_dsh/aug-remote/relay/v1/handshake',
       headers: { ...REMOTE_HEADERS, authorization: `Bearer ${own.token}`, 'content-type': 'application/json' },
       body: {},
     })
     assert.strictEqual(alive.status, 200, 'the gateway survived the poison name')
-    const forward = target.seen.filter((row) => String(row.path).split('?')[0] === '/_dsh/zen-remote/relay/v1/handshake').pop()
-    assert.strictEqual(forward.headers['x-zen-remote-device-name'], encodeURIComponent('\uFFFD'))
+    const forward = target.seen.filter((row) => String(row.path).split('?')[0] === '/_dsh/aug-remote/relay/v1/handshake').pop()
+    assert.strictEqual(forward.headers['x-aug-remote-device-name'], encodeURIComponent('\uFFFD'))
     assert.ok(gw.child.pid > 0)
   } finally { await stop() }
 })
@@ -211,13 +211,13 @@ test('T59-fix: a pairing name cut at 39 chars + an emoji keeps the WHOLE emoji; 
     // A forward encodes it cleanly (no URIError — the gateway stays up).
     const forward = await request(PORT, {
       method: 'POST',
-      path: '/_dsh/zen-remote/relay/v1/handshake',
+      path: '/_dsh/aug-remote/relay/v1/handshake',
       headers: { ...REMOTE_HEADERS, authorization: `Bearer ${token}`, 'content-type': 'application/json' },
       body: {},
     })
     assert.strictEqual(forward.status, 200)
-    const seen = target.seen.filter((row) => String(row.path).split('?')[0] === '/_dsh/zen-remote/relay/v1/handshake').pop()
-    assert.strictEqual(seen.headers['x-zen-remote-device-name'], encodeURIComponent('a'.repeat(39) + '\u{1F600}'))
+    const seen = target.seen.filter((row) => String(row.path).split('?')[0] === '/_dsh/aug-remote/relay/v1/handshake').pop()
+    assert.strictEqual(seen.headers['x-aug-remote-device-name'], encodeURIComponent('a'.repeat(39) + '\u{1F600}'))
 
     // The admin rename sanitizer: a trailing half-emoji becomes U+FFFD.
     const rename = await request(PORT, { method: 'POST', path: '/lan-gate/action', body: { action: 'rename', id: j.id, name: 'ab' + '\ud83d' } })
@@ -259,13 +259,13 @@ test('T59-fix: a poisoned name in the STATE FILE is scrubbed at boot and every r
     // The forward does not crash on the header, and the scrubbed name rides.
     const forward = await request(PORT, {
       method: 'POST',
-      path: '/_dsh/zen-remote/relay/v1/handshake',
+      path: '/_dsh/aug-remote/relay/v1/handshake',
       headers: { ...REMOTE_HEADERS, authorization: `Bearer ${token}`, 'content-type': 'application/json' },
       body: {},
     })
     assert.strictEqual(forward.status, 200)
-    const seen = target.seen.filter((row) => String(row.path).split('?')[0] === '/_dsh/zen-remote/relay/v1/handshake').pop()
-    assert.strictEqual(seen.headers['x-zen-remote-device-name'], encodeURIComponent('x'.repeat(10) + '\uFFFD'))
+    const seen = target.seen.filter((row) => String(row.path).split('?')[0] === '/_dsh/aug-remote/relay/v1/handshake').pop()
+    assert.strictEqual(seen.headers['x-aug-remote-device-name'], encodeURIComponent('x'.repeat(10) + '\uFFFD'))
 
     // And the scrubbed state was persisted.
     const onDisk = JSON.parse(fs.readFileSync(path.join(home, 'lan-gate-state.json'), 'utf8'))

@@ -1,4 +1,4 @@
-/* dsh-zen-remote · invoke-binary (src/invoke-binary.ts)
+/* dsh-aug-remote · invoke-binary (src/invoke-binary.ts)
  *
  * The 2026-10-14 fix: workspaceFiles/readBytes' Uint8Array cannot ride the
  * relay's JSON invoke channel — mark on the server, restore on the client.

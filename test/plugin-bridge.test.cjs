@@ -1,4 +1,4 @@
-/* dsh-zen-remote · plugin bridge registration & comparison (PB-1)
+/* dsh-aug-remote · plugin bridge registration & comparison (PB-1)
  *
  * Drives the BUILT lib/plugin-bridge.js (the lib-driving convention: src/
  * relative specifiers are what the tests must never have to map), covering
@@ -89,7 +89,7 @@ test('normalizeDeclaration rejects route paths that are not plain, host-unowned 
     ['/panel#top', 'fragment'],
     ['/panel/../admin', 'dot segment'],
     ['/panel tasks', 'whitespace'],
-    ['/_dsh/zen-remote/relay', 'the plugin prefix'],
+    ['/_dsh/aug-remote/relay', 'the plugin prefix'],
     ['/api/session.list', 'the host /api prefix'],
     ['/apifoo', 'the literal /api string prefix'],
     ['', 'empty'],

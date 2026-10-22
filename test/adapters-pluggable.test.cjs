@@ -1,4 +1,4 @@
-/* dsh-zen-remote · the adapters' PLUGGABILITY contract (PB-11)
+/* dsh-aug-remote · the adapters' PLUGGABILITY contract (PB-11)
  *
  * 用户硬要求：适配器整块移除后不影响其他功能。三项检查钉住它：
  *  ① 以空适配器数组跑一遍插件桥协作全链路——核心转发一个字节都不差；

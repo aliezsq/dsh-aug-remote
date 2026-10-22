@@ -68,15 +68,15 @@ import { ADAPTERS } from './adapters/index.js'
 import { createRelayHandler, loadServerId, RELAY_PREFIX, resolveDshVersion } from './relay-server.js'
 import type { RelayGateway, RelayHandler } from './relay-server.js'
 import { createBridgeRegistry, compareBridges } from './plugin-bridge.js'
-import type { BridgeDeclaration, BridgeRegistry, BridgeStatus, ServerPluginEntry, ZenRemoteService } from './plugin-bridge.js'
+import type { BridgeDeclaration, BridgeRegistry, BridgeStatus, ServerPluginEntry, AugRemoteService } from './plugin-bridge.js'
 import { createPluginLoopback } from './plugin-loopback.js'
 import { createPluginTunnel } from './plugin-tunnel.js'
 import { cleanupStalePromptAttachments, savePromptAttachment } from './prompt-attachments.js'
 
 // The plugin bridge's public types (PB-1), re-exported so another plugin's
-// author can `import type { … } from 'dsh-zen-remote'` without reaching into
+// author can `import type { … } from 'dsh-aug-remote'` without reaching into
 // lib/types. Type-only: no runtime code, no Context augmentation.
-export type { BridgeDeclaration, ZenRemoteService } from './plugin-bridge.js'
+export type { BridgeDeclaration, AugRemoteService } from './plugin-bridge.js'
 
 // The loader's config schema (settings form) and the role normalizer live in
 // src/config.ts next to the resolution they describe; re-exported so the
@@ -493,15 +493,15 @@ export async function handleUpload(
  */
 export function apply(ctx: Context, config: MobileNavConfig = {}): void {
   const effective = resolveConfig(config, readFileConfig(), process.env)
-  // The plugin bridge's zenRemote service (PB-1), provided on BOTH roles
+  // The plugin bridge's augRemote service (PB-1), provided on BOTH roles
   // before any role branch: a plugin that wants its panel data forwarded in
   // remote sessions declares that against THIS process whichever role it
   // runs as, and the declaration registry is the one piece of PB-1 both the
   // server half (handshake plugins table) and the client half (route
   // rewrite) will read. ctx.provide (cordis 4) registers the service owned
-  // by THIS row's fiber: visible to `inject(['zenRemote'])` dependents once
+  // by THIS row's fiber: visible to `inject(['augRemote'])` dependents once
   // the row is active, withdrawn when the row unloads — so a composition
-  // without zen-remote never fires those injects and a row reload swaps the
+  // without aug-remote never fires those injects and a row reload swaps the
   // service wholesale. The registry goes into the module slot BEFORE the
   // provide so this apply's consumers never see a window without it; the
   // effect's identity guard then clears the slot exactly when THIS row
@@ -510,20 +510,20 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
   // failing the row over — the bridge stays off, everything else keeps
   // working — so it degrades to a warning like the session feeds do.
   const registry = createBridgeRegistry({
-    warn: (text) => { ctx.logger?.warn('dsh-zen-remote plugin bridge: %s', text) },
+    warn: (text) => { ctx.logger?.warn('dsh-aug-remote plugin bridge: %s', text) },
   })
   bridgeRegistry = registry
   try {
-    const service: ZenRemoteService = {
+    const service: AugRemoteService = {
       bridge: (declaration: BridgeDeclaration) => registry.register(declaration),
     }
-    ctx.provide('zenRemote', service)
+    ctx.provide('augRemote', service)
   } catch (error) {
-    ctx.logger?.warn('dsh-zen-remote: cannot provide the "zenRemote" service: %s', message(error))
+    ctx.logger?.warn('dsh-aug-remote: cannot provide the "augRemote" service: %s', message(error))
   }
   ctx.effect(() => () => {
     if (bridgeRegistry === registry) bridgeRegistry = undefined
-  }, 'dsh-zen-remote: plugin bridge registry disposal')
+  }, 'dsh-aug-remote: plugin bridge registry disposal')
   // The adapters (PB-11): each one registers ONLY against its target's
   // EXACT installed version, probed off the host's `pluginPackages` service
   // (`packageOf(name, ctx.baseUrl)` — verified on 0.2.0-rc.2 to answer
@@ -537,7 +537,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
   // array feeds the two request halves.
   const adapters: NormalizedAdapter[] = []
   {
-    const adapterWarn = (text: string): void => { ctx.logger?.warn('dsh-zen-remote adapter: %s', text) }
+    const adapterWarn = (text: string): void => { ctx.logger?.warn('dsh-aug-remote adapter: %s', text) }
     for (const adapter of ADAPTERS) {
       try {
         const holder = ctx as unknown as { get?: (name: string) => unknown; baseUrl?: string }
@@ -557,7 +557,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
         }
         registry.registerNormalized(normalized.declaration)
         adapters.push(normalized)
-        ctx.logger?.info('dsh-zen-remote adapter: %s adapted at version %s', normalized.plugin, installedVersion)
+        ctx.logger?.info('dsh-aug-remote adapter: %s adapted at version %s', normalized.plugin, installedVersion)
       } catch (error) {
         adapterWarn(`${adapter.plugin} refused: ${error instanceof Error ? error.message : String(error)}`)
       }
@@ -579,7 +579,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
     // a later task.
     const home = process.env.DSH_HOME ?? join(homedir(), '.dsh')
     const store = createShareStore({
-      file: join(home, 'zen-remote-shares.json'),
+      file: join(home, 'aug-remote-shares.json'),
       idleHours: effective.values.idleHours,
     })
     // The live relay handler, kept so the admin shares route can read viewer
@@ -614,7 +614,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
         tracker.onEvent(sessionId, event.type)
       })
     } catch (error) {
-      ctx.logger.warn('dsh-zen-remote cannot listen on "session/event": %s', message(error))
+      ctx.logger.warn('dsh-aug-remote cannot listen on "session/event": %s', message(error))
     }
     // Auto-share and fork-following (T33a), off `agent/created` — the only
     // host event that fires EXACTLY ONCE per NEW session. Its `source` is
@@ -644,11 +644,11 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
             parentOf: parentIndex.parentOf,
           })
         } catch (error) {
-          ctx.logger.warn('dsh-zen-remote cannot share new session "%s": %s', agent.id, message(error))
+          ctx.logger.warn('dsh-aug-remote cannot share new session "%s": %s', agent.id, message(error))
         }
       })
     } catch (error) {
-      ctx.logger.warn('dsh-zen-remote cannot listen on "agent/created": %s', message(error))
+      ctx.logger.warn('dsh-aug-remote cannot listen on "agent/created": %s', message(error))
     }
     // Busy restore (T33a): `busy` is never persisted, so right after a row
     // restart every shared session believes itself idle — including one whose
@@ -671,19 +671,19 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
           sessionPersistence?: { list(): Promise<readonly PersistedSessionSnapshot[]> } | undefined
         }).sessionPersistence
         if (persistence === undefined) {
-          ctx.logger.warn('dsh-zen-remote: no sessionPersistence service — pre-restart subagent sessions stay not-shared until they emit an event')
+          ctx.logger.warn('dsh-aug-remote: no sessionPersistence service — pre-restart subagent sessions stay not-shared until they emit an event')
           return
         }
         void persistence
           .list()
           .then((snapshots) => {
             const recorded = seedParentIndexFromSnapshots(parentIndex, snapshots)
-            if (recorded > 0) ctx.logger.info?.('dsh-zen-remote: restored %d persisted parent links', recorded)
+            if (recorded > 0) ctx.logger.info?.('dsh-aug-remote: restored %d persisted parent links', recorded)
           })
-          .catch((error: unknown) => ctx.logger.warn('dsh-zen-remote cannot seed parent links from persisted sessions: %s', message(error)))
+          .catch((error: unknown) => ctx.logger.warn('dsh-aug-remote cannot seed parent links from persisted sessions: %s', message(error)))
       })
     } catch (error) {
-      ctx.logger.warn('dsh-zen-remote cannot listen on "sessionPersistence": %s', message(error))
+      ctx.logger.warn('dsh-aug-remote cannot listen on "sessionPersistence": %s', message(error))
     }
     // Settings-surface admin routes (T14). The browser cannot call the
     // gateway's loopback-only admin API from DSH's origin, so the host
@@ -737,7 +737,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
             adaptedPlugins: () => new Set(adapters.filter((adapter) => adapterOwnsRegistryEntry(adapter, registry.get(adapter.plugin))).map((adapter) => adapter.plugin)),
           },
         }),
-      }), 'dsh-zen-remote: admin routes')
+      }), 'dsh-aug-remote: admin routes')
     })
     // The idle sweeper (T22c): every minute, hand the table the CURRENT
     // idleHours and let it close sessions quiet past that. idleHours is a
@@ -747,7 +747,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
     // falls back inside resolveConfig, and share-store ignores the rest.
     ctx.effect(
       () => startSweeper({ store, getIdleHours: () => resolveConfig(config, readFileConfig(), process.env).values.idleHours }),
-      'dsh-zen-remote: idle sweeper',
+      'dsh-aug-remote: idle sweeper',
     )
     // The relay routes live where the typertGateway service does (0.2.0
     // compositions): a composition without it — 0.1.7, Electron — simply
@@ -860,7 +860,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
             },
           },
           // PB-3: the forwarding half of the plugin bridge — the registry
-          // this apply built (the zenRemote service's table), the consent
+          // this apply built (the augRemote service's table), the consent
           // map read LIVE per request (a volatile row field), and the
           // loopback executor over the wiring's two reflection getters.
           // PB-10: the WebSocket byte tunnel's server half shares the SAME
@@ -900,7 +900,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
           unregister()
           if (relayHandler === handler) relayHandler = undefined
         }
-      }, 'dsh-zen-remote: relay route')
+      }, 'dsh-aug-remote: relay route')
     })
     // The remote-status route lives on BOTH roles (T34-fix): it is what the
     // client-half parts poll, and a desktop app can switch roles without a
@@ -920,7 +920,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
           getRowConfig: () => config,
           remoteStatusOnly: true,
         }),
-      }), 'dsh-zen-remote: client routes (host)')
+      }), 'dsh-aug-remote: client routes (host)')
     })
   } else {
     // Sub-client half (T16, T23a): pairing claim + connection status, talking to
@@ -969,7 +969,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
     ctx.effect(() => () => {
       relayClient.stop()
       if (clientRelayClient === relayClient) clientRelayClient = undefined
-    }, 'dsh-zen-remote: relay client disposal')
+    }, 'dsh-aug-remote: relay client disposal')
     // Credentials watch (T43): serverUrl / deviceToken are volatile row
     // fields, and a pairing write (or unpair) commits them WITHOUT a row
     // restart. The loader announces the commit on the row context; the
@@ -1002,10 +1002,10 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
           off()
         }
       } catch (error) {
-        ctx.logger.warn('dsh-zen-remote: cannot listen on "loader/volatile-update" for relay credentials: %s', message(error))
+        ctx.logger.warn('dsh-aug-remote: cannot listen on "loader/volatile-update" for relay credentials: %s', message(error))
         return () => {}
       }
-    }, 'dsh-zen-remote: relay credentials watcher')
+    }, 'dsh-aug-remote: relay credentials watcher')
     // One connection attempt at startup (T23a). Failures only log — the
     // status route surfaces the resulting state, and the client's own
     // backoff ladder (T43) takes over from the first failure. An unpaired
@@ -1013,7 +1013,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
     void relayClient.connect().catch((error) => {
       if (error instanceof RelayError && error.code === 'unpaired') return
       const code = error instanceof RelayError ? error.code : 'error'
-      ctx.logger.warn('dsh-zen-remote relay client initial connect failed (%s): %s', code, message(error))
+      ctx.logger.warn('dsh-aug-remote relay client initial connect failed (%s): %s', code, message(error))
     })
     // The typertGateway interception (T23b-1): remote-session calls ride the
     // relay, everything else reaches the local gateway untouched. The live
@@ -1053,7 +1053,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
         : undefined
       if (raw === null || typeof raw !== 'object') {
         interceptRefused = { ok: false, reasons: ['original: typertGateway[symbols.original] is not an object'] }
-        logWarn('dsh-zen-remote client intercept not installed: %s', interceptRefused.reasons[0])
+        logWarn('dsh-aug-remote client intercept not installed: %s', interceptRefused.reasons[0])
         return
       }
       // Shape first (spike §4.1): a failed check leaves the gateway exactly
@@ -1061,7 +1061,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
       const shape = checkGatewayShape(raw)
       if (!shape.ok) {
         interceptRefused = shape
-        logWarn('dsh-zen-remote client intercept not installed: %s', shape.reasons.join('; '))
+        logWarn('dsh-aug-remote client intercept not installed: %s', shape.reasons.join('; '))
         return
       }
       const handle = installIntercept({
@@ -1069,13 +1069,13 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
         relay: relayClient,
         getServerId: () => relayClient.handshakeInfo?.serverId,
         getCurrentSession: () => reportedCurrentSession,
-        log: (format, ...args) => { ctx.logger?.info(`dsh-zen-remote ${format}`, ...args) },
+        log: (format, ...args) => { ctx.logger?.info(`dsh-aug-remote ${format}`, ...args) },
       })
       interceptHandle = handle
       gatewayCtx.effect(() => () => {
         handle.uninstall()
         if (interceptHandle === handle) interceptHandle = undefined
-      }, 'dsh-zen-remote: typert intercept')
+      }, 'dsh-aug-remote: typert intercept')
       // Behavior self-check (spike §4.1 check 4) — the shape check proves
       // the constructor still resolves dynamically, this proves the wrap is
       // actually REACHED: one local `workspace/follow` through
@@ -1091,7 +1091,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
       void runSelfCheck(raw, {
         handle,
         log: logWarn,
-        info: (format, ...args) => { ctx.logger?.info(`dsh-zen-remote ${format}`, ...args) },
+        info: (format, ...args) => { ctx.logger?.info(`dsh-aug-remote ${format}`, ...args) },
         getPeer: createOwnerPeerSource(() => gatewayCtx.reflect.get('connection')),
       })
     })
@@ -1140,7 +1140,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
         : undefined
       if (raw === null || typeof raw !== 'object') {
         fetchRouteRefused = { ok: false, reasons: ['original: connection[symbols.original] is not an object'] }
-        logWarn('dsh-zen-remote fetch-route intercept not installed: %s', fetchRouteRefused.reasons[0])
+        logWarn('dsh-aug-remote fetch-route intercept not installed: %s', fetchRouteRefused.reasons[0])
         return
       }
       // Shape first, like the typert wrap: a failed check leaves every route
@@ -1149,20 +1149,20 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
       const shape = checkFetchRouteShape(raw)
       if (!shape.ok) {
         fetchRouteRefused = shape
-        logWarn('dsh-zen-remote fetch-route intercept not installed: %s', shape.reasons.join('; '))
+        logWarn('dsh-aug-remote fetch-route intercept not installed: %s', shape.reasons.join('; '))
         return
       }
       const handle = installFetchRouteIntercept({
         connection: raw,
         relay: relayClient,
         getServerId: () => relayClient.handshakeInfo?.serverId,
-        log: (format, ...args) => { logInfo(`dsh-zen-remote ${format}`, ...args) },
+        log: (format, ...args) => { logInfo(`dsh-aug-remote ${format}`, ...args) },
       })
       fetchRouteHandle = handle
       connectionCtx.effect(() => () => {
         handle.uninstall()
         if (fetchRouteHandle === handle) fetchRouteHandle = undefined
-      }, 'dsh-zen-remote: fetch-route intercept')
+      }, 'dsh-aug-remote: fetch-route intercept')
     })
     // The plugin bridge's route interception (PB-4): the local webServer's
     // `match` wrap forwarding bridged-plugin requests for REMOTE sessions
@@ -1201,7 +1201,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
         : undefined
       if (raw === null || typeof raw !== 'object') {
         pluginRouteRefused = { ok: false, reasons: ['original: webServer[symbols.original] is not an object'] }
-        logWarn('dsh-zen-remote plugin-route intercept not installed: %s', pluginRouteRefused.reasons[0])
+        logWarn('dsh-aug-remote plugin-route intercept not installed: %s', pluginRouteRefused.reasons[0])
         return
       }
       // Shape first, like every wrap: a failed check leaves the webServer
@@ -1209,7 +1209,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
       const shape = checkWebServerShape(raw)
       if (!shape.ok) {
         pluginRouteRefused = shape
-        logWarn('dsh-zen-remote plugin-route intercept not installed: %s', shape.reasons.join('; '))
+        logWarn('dsh-aug-remote plugin-route intercept not installed: %s', shape.reasons.join('; '))
         return
       }
       const handle = installPluginRouteIntercept({
@@ -1224,13 +1224,13 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
         // routes' deny hooks read (better-sidebar's open.external carries
         // no session field of its own).
         getCurrentSession: () => (reportedCurrentSession.kind === 'open' ? reportedCurrentSession.sessionId : undefined),
-        log: (format, ...args) => { ctx.logger?.info(`dsh-zen-remote ${format}`, ...args) },
+        log: (format, ...args) => { ctx.logger?.info(`dsh-aug-remote ${format}`, ...args) },
       })
       pluginRouteHandle = handle
       wsCtx.effect(() => () => {
         handle.uninstall()
         if (pluginRouteHandle === handle) pluginRouteHandle = undefined
-      }, 'dsh-zen-remote: plugin route intercept')
+      }, 'dsh-aug-remote: plugin route intercept')
     })
     ctx.inject(['webServer', 'connection'], (clientCtx) => {
       clientCtx.effect(() => clientCtx.webServer.register({
@@ -1246,7 +1246,7 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
           getPluginBridgeStatus: pluginBridgeStatus,
           onCurrentSession,
         }),
-      }), 'dsh-zen-remote: client routes')
+      }), 'dsh-aug-remote: client routes')
     })
   }
   // Restart watcher (T17 + T17b), both roles: every Config field is volatile
@@ -1273,15 +1273,15 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
   const reload = (): void => {
     const fiber = (ctx as { fiber?: { restart?: () => Promise<unknown> } }).fiber
     if (fiber?.restart === undefined) {
-      ctx.logger.warn('dsh-zen-remote: a restart-required setting changed, but no fiber is available to reload the plugin row')
+      ctx.logger.warn('dsh-aug-remote: a restart-required setting changed, but no fiber is available to reload the plugin row')
       return
     }
     try {
       Promise.resolve(fiber.restart()).catch((error) => {
-        ctx.logger.warn('dsh-zen-remote: plugin row reload failed: %s', message(error))
+        ctx.logger.warn('dsh-aug-remote: plugin row reload failed: %s', message(error))
       })
     } catch (error) {
-      ctx.logger.warn('dsh-zen-remote: plugin row reload failed: %s', message(error))
+      ctx.logger.warn('dsh-aug-remote: plugin row reload failed: %s', message(error))
     }
   }
   ctx.effect(() => {
@@ -1294,10 +1294,10 @@ export function apply(ctx: Context, config: MobileNavConfig = {}): void {
     try {
       ctx.on('loader/volatile-update', () => { watcher.checkNow() })
     } catch (error) {
-      ctx.logger.warn('dsh-zen-remote: cannot listen on "loader/volatile-update": %s', message(error))
+      ctx.logger.warn('dsh-aug-remote: cannot listen on "loader/volatile-update": %s', message(error))
     }
     return watcher.stop
-  }, 'dsh-zen-remote: restart watcher')
+  }, 'dsh-aug-remote: restart watcher')
   // The upload route carries the T17 admission wall too: webServer routes
   // skip DSH's /api authentication, so without the connection service's
   // admit this 1.x-era route was the one unauthenticated write path left. A

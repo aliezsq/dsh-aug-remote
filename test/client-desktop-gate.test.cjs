@@ -1,5 +1,5 @@
 'use strict'
-/* dsh-zen-remote · T15 desktop-gate tests
+/* dsh-aug-remote · T15 desktop-gate tests
  *
  * The settings page (plugin-row config block) must register on BOTH sides of
  * apply's desktop gate — the desktop app IS the main server — while the phone
@@ -91,7 +91,7 @@ function driveConfigForms(ctx) {
       // The device token's configured flag reads the describe view's secrets
       // sidecar (T16); the fake carries the empty sidecar.
       describe: () => ({
-        getSnapshot: () => ({ view: { namespaces: [{ ns: 'dsh-zen-remote', secrets: [] }] } }),
+        getSnapshot: () => ({ view: { namespaces: [{ ns: 'dsh-aug-remote', secrets: [] }] } }),
         subscribe: () => () => {},
       }),
       whileServed(namespaces, register) {
@@ -113,10 +113,10 @@ function driveConfigForms(ctx) {
   })
   // Drive the whileServed effect the way cordis would (the dispose effect is
   // only invoked at fiber teardown; its presence is asserted instead).
-  const served = formsCalls.effects.find((candidate) => candidate.label === 'dsh-zen-remote: row config page')
+  const served = formsCalls.effects.find((candidate) => candidate.label === 'dsh-aug-remote: row config page')
   assert.notEqual(served, undefined, 'the row config page registers through whileServed')
   served.producer()
-  const dispose = formsCalls.effects.find((candidate) => candidate.label === 'dsh-zen-remote: settings form')
+  const dispose = formsCalls.effects.find((candidate) => candidate.label === 'dsh-aug-remote: settings form')
   assert.notEqual(dispose, undefined, 'the controller is released through its own effect')
   assert.equal(typeof dispose.producer(), 'function', 'the dispose effect producer returns a disposer')
   return formsCalls
@@ -137,12 +137,12 @@ test('desktop shell: the settings page still registers (locale + row config bloc
     assert.equal(calls.localeRegisters[0].ns, 'mobileNav')
 
     const formsCalls = driveConfigForms(ctx)
-    assert.deepEqual(formsCalls.whileServed[0].namespaces, ['dsh-zen-remote'])
+    assert.deepEqual(formsCalls.whileServed[0].namespaces, ['dsh-aug-remote'])
     assert.equal(formsCalls.slotsInjected[0].name, 'plugins.row.config')
     const registration = formsCalls.slotsRegistered[0]
     assert.notEqual(registration, undefined, 'the row config block registers on the desktop shell')
     assert.equal(registration.options.name, 'plugins.row.config')
-    assert.equal(registration.options.key, 'dsh-zen-remote#dsh-zen-remote')
+    assert.equal(registration.options.key, 'dsh-aug-remote#dsh-aug-remote')
     assert.equal(registration.options.locale, 'mobileNav')
     // The injected share hands the component the staged form controller.
     const share = registration.options.inject()
@@ -163,7 +163,7 @@ test('plain web: the settings page registers the same way', async () => {
   assert.equal(calls.localeRegisters.length, 1)
   const formsCalls = driveConfigForms(ctx)
   assert.equal(formsCalls.slotsRegistered.length, 1)
-  assert.equal(formsCalls.slotsRegistered[0].options.key, 'dsh-zen-remote#dsh-zen-remote')
+  assert.equal(formsCalls.slotsRegistered[0].options.key, 'dsh-aug-remote#dsh-aug-remote')
 })
 
 test('configForms is lazy: nothing outside the ctx.inject callback touches it', async () => {
@@ -219,7 +219,7 @@ test('T33b: desktop shell — the remote icon and menu item still register (both
     // The styles effect touches `document`, so like every effect here it is
     // asserted present, not invoked.
     assert.notEqual(
-      calls.effects.find((candidate) => candidate.label === 'dsh-zen-remote: remote-share styles'),
+      calls.effects.find((candidate) => candidate.label === 'dsh-aug-remote: remote-share styles'),
       undefined,
       'the remote-share stylesheet effect is registered',
     )
@@ -413,7 +413,7 @@ test('T34: desktop shell — the status icon and composer banner still register 
     const { ctx, calls } = fakeCtx()
     registerRemoteStatusUi(ctx, iconComponent, bannerComponent)
     assert.notEqual(
-      calls.effects.find((candidate) => candidate.label === 'dsh-zen-remote: remote-status styles'),
+      calls.effects.find((candidate) => candidate.label === 'dsh-aug-remote: remote-status styles'),
       undefined,
       'the remote-status stylesheet effect is registered',
     )
@@ -748,7 +748,7 @@ test('T34: the store unshare posts the virtual id to the client route, then refr
   const outcome = await store.unshare('zr~abcd1234~session-a')
   assert.deepEqual(outcome, { ok: true })
   const post = seen.find((call) => call.method === 'POST')
-  assert.equal(post.url, '/_dsh/zen-remote/client/unshare')
+  assert.equal(post.url, '/_dsh/aug-remote/client/unshare')
   assert.deepEqual(JSON.parse(post.body), { sessionId: 'zr~abcd1234~session-a' })
   assert.ok(pollCalls >= 1, 'the action was followed by a refresh')
 

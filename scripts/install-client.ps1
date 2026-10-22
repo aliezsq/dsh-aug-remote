@@ -4,10 +4,10 @@
 #   powershell -ExecutionPolicy Bypass -File .\install-client.ps1 -Package .\dsh-aug-remote-2.4.0.tgz
 #
 # What it does:
-#   1. finds the DSH profile that has dsh-aug-remote OR the old dsh-zen-remote;
+#   1. finds the DSH profile that has dsh-aug-remote OR the old dsh-aug-remote;
 #   2. backs up both node_modules folders, installs the tarball as
 #      node_modules\dsh-aug-remote;
-#   3. migrates the profile: drops the old "dsh-zen-remote" dependency, pins
+#   3. migrates the profile: drops the old "dsh-aug-remote" dependency, pins
 #      "dsh-aug-remote": "file:vendor/<tarball>", and renames the entry in
 #      dsh.profile.bundles (so a later pnpm install cannot restore the npm
 #      build, and the old package cannot load a second plugin row);
@@ -39,10 +39,10 @@ $hits = @(
   Get-ChildItem -LiteralPath $profilesRoot -Directory |
     Where-Object {
       (Test-Path -LiteralPath (Join-Path $_.FullName 'node_modules\dsh-aug-remote\package.json')) -or
-      (Test-Path -LiteralPath (Join-Path $_.FullName 'node_modules\dsh-zen-remote\package.json'))
+      (Test-Path -LiteralPath (Join-Path $_.FullName 'node_modules\dsh-aug-remote\package.json'))
     }
 )
-if ($hits.Count -eq 0) { throw "No profile under $profilesRoot has dsh-aug-remote or dsh-zen-remote installed" }
+if ($hits.Count -eq 0) { throw "No profile under $profilesRoot has dsh-aug-remote or dsh-aug-remote installed" }
 if ($hits.Count -gt 1) {
   $hits | ForEach-Object { Write-Host ("match: " + $_.FullName) }
   throw "More than one profile matches; handle it manually."
@@ -51,7 +51,7 @@ if ($hits.Count -gt 1) {
 $profileDir = $hits[0].FullName
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $dst = Join-Path $profileDir 'node_modules\dsh-aug-remote'
-$old = Join-Path $profileDir 'node_modules\dsh-zen-remote'
+$old = Join-Path $profileDir 'node_modules\dsh-aug-remote'
 $tmpRoot = Join-Path $env:TEMP ("zr-" + [guid]::NewGuid().ToString('N'))
 
 Write-Host "profile : $profileDir"
@@ -77,7 +77,7 @@ try {
 if (Test-Path -LiteralPath $old) {
   $bakOld = "$old.bak-$stamp"
   Rename-Item -LiteralPath $old -NewName (Split-Path -Leaf $bakOld)
-  Write-Host "removed : legacy dsh-zen-remote -> $bakOld"
+  Write-Host "removed : legacy dsh-aug-remote -> $bakOld"
 }
 
 # --- migrate the profile: dependency + bundles + pinned tarball --------------
@@ -94,8 +94,8 @@ if ($null -eq $json.PSObject.Properties['dependencies']) {
   $json | Add-Member -MemberType NoteProperty -Name dependencies -Value (New-Object psobject)
 }
 $dep = "file:vendor/$packageName"
-if ($json.dependencies.PSObject.Properties['dsh-zen-remote']) {
-  $json.dependencies.PSObject.Properties.Remove('dsh-zen-remote')
+if ($json.dependencies.PSObject.Properties['dsh-aug-remote']) {
+  $json.dependencies.PSObject.Properties.Remove('dsh-aug-remote')
 }
 if ($json.dependencies.PSObject.Properties['dsh-aug-remote']) {
   $json.dependencies.'dsh-aug-remote' = $dep
@@ -105,7 +105,7 @@ if ($json.dependencies.PSObject.Properties['dsh-aug-remote']) {
 if ($json.PSObject.Properties['dsh']) {
   $prof = $json.dsh.PSObject.Properties['profile']
   if ($null -ne $prof -and $null -ne $prof.Value.PSObject.Properties['bundles']) {
-    $bundles = @($prof.Value.bundles | ForEach-Object { if ($_ -eq 'dsh-zen-remote') { 'dsh-aug-remote' } else { $_ } })
+    $bundles = @($prof.Value.bundles | ForEach-Object { if ($_ -eq 'dsh-aug-remote') { 'dsh-aug-remote' } else { $_ } })
     if (-not ($bundles -contains 'dsh-aug-remote')) { $bundles += 'dsh-aug-remote' }
     $json.dsh.profile.bundles = @($bundles | Select-Object -Unique)
   }
@@ -113,7 +113,7 @@ if ($json.PSObject.Properties['dsh']) {
 # UTF-8 WITHOUT BOM: DSH parses package.json with JSON.parse, which rejects a BOM.
 [System.IO.File]::WriteAllText($pkgJson, ($json | ConvertTo-Json -Depth 20), (New-Object System.Text.UTF8Encoding($false)))
 Write-Host "pinned  : dependencies.dsh-aug-remote = $dep"
-Write-Host "bundles : dsh-zen-remote -> dsh-aug-remote"
+Write-Host "bundles : dsh-aug-remote -> dsh-aug-remote"
 
 $installed = (Get-Content -LiteralPath (Join-Path $dst 'package.json') -Raw | ConvertFrom-Json).version
 Write-Host ""

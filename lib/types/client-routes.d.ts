@@ -31,36 +31,36 @@ import type { PluginRouteInterceptDiagnostics } from './plugin-route-intercept.j
 import type { BridgeStatus } from './plugin-bridge.js';
 import type { RelayClient } from './relay-client.js';
 /** Prefix all client routes live under (one webServer prefix registration). */
-export declare const CLIENT_ROUTE_PREFIX = "/_dsh/zen-remote/client";
+export declare const CLIENT_ROUTE_PREFIX = "/_dsh/aug-remote/client";
 /** POST `{serverUrl, code, name}`: redeem a desktop pairing code. */
-export declare const CLIENT_CLAIM_ROUTE = "/_dsh/zen-remote/client/claim";
+export declare const CLIENT_CLAIM_ROUTE = "/_dsh/aug-remote/client/claim";
 /** GET: the current connection state (never carries the token). */
-export declare const CLIENT_STATUS_ROUTE = "/_dsh/zen-remote/client/status";
+export declare const CLIENT_STATUS_ROUTE = "/_dsh/aug-remote/client/status";
 /** POST: one immediate reconnect attempt (T43, the settings page's 立即重连);
  * answered 409 unless the relay client is currently `offline`. */
-export declare const CLIENT_RECONNECT_ROUTE = "/_dsh/zen-remote/client/reconnect";
+export declare const CLIENT_RECONNECT_ROUTE = "/_dsh/aug-remote/client/reconnect";
 /** GET: the remote-session status the T34 client parts render from (T34) —
  * the relay's serving state, the interface-compatibility verdict, the
  * handshake's server name, and the closed-session map. The prefix is
  * registered on BOTH roles (T34-fix): a host — no relay client wired —
  * answers the empty `{state:'unpaired', versionMismatch:false, serverName:'',
  * closed:{}}` conclusion. It carries no token and no server address. */
-export declare const CLIENT_REMOTE_STATUS_ROUTE = "/_dsh/zen-remote/client/remote-status";
+export declare const CLIENT_REMOTE_STATUS_ROUTE = "/_dsh/aug-remote/client/remote-status";
 /** POST `{sessionId: <虚拟 id>}`: close one remote session from THIS machine
  * (T34) — the backend forwards the ORIGINAL id through the relay's
  * `POST relay/v1/unshare`, so the server closes it with reason `'client'`. */
-export declare const CLIENT_UNSHARE_ROUTE = "/_dsh/zen-remote/client/unshare";
+export declare const CLIENT_UNSHARE_ROUTE = "/_dsh/aug-remote/client/unshare";
 /** POST `{sessionId: string | null}`: the browser's report of which session
  * the host UI currently has open (T62) — the intercept layer runs in this
  * backend process and cannot read the browser's localStorage itself. `null`
  * means a readable signal says nothing is open; the sink stores the value
  * and re-judges the mergers immediately. */
-export declare const CLIENT_CURRENT_SESSION_ROUTE = "/_dsh/zen-remote/client/current-session";
+export declare const CLIENT_CURRENT_SESSION_ROUTE = "/_dsh/aug-remote/client/current-session";
 /** Prefix of the plain-HTTP relay routes (T41b):
  * `GET ${CLIENT_HTTP_ROUTE_PREFIX}<route>?<query>` relays one intercepted
  * `/api/<route>` call (the fetch wrapper's rewrites land here) to the
  * server, with the virtual session id swapped back to the original. */
-export declare const CLIENT_HTTP_ROUTE_PREFIX = "/_dsh/zen-remote/client/http/";
+export declare const CLIENT_HTTP_ROUTE_PREFIX = "/_dsh/aug-remote/client/http/";
 /** The fetch face this module needs; injectable for tests. */
 export type FetchLike = (url: string | URL, init?: RequestInit) => Promise<Response>;
 export interface ClientHandlerOptions {

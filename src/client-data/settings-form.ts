@@ -1,18 +1,18 @@
 /**
- * Staged configuration form for the `dsh-zen-remote` plugin row, in the same
+ * Staged configuration form for the `dsh-aug-remote` plugin row, in the same
  * shape the dsh-llm-verifier page uses (a control stages what the user types,
  * one save writes every staged edit as a single revision-fenced path mutation
  * through the shared `configForms` form). Browser-import-free so tests drive
  * it directly:
  *
- * - `deriveSettingsView(status)` maps the `GET /_dsh/zen-remote/admin/status`
+ * - `deriveSettingsView(status)` maps the `GET /_dsh/aug-remote/admin/status`
  *   body (T14's same-origin route wrapping the gateway's local admin API) into
  *   what the settings block renders: per-field effective value + source layer,
  *   the device list, the live pairing code with its remaining seconds, and the
  *   `viaGateway` flag that disables every server-local operation.
- * - `deriveClientStatusView(status)` maps the `GET /_dsh/zen-remote/client/status`
+ * - `deriveClientStatusView(status)` maps the `GET /_dsh/aug-remote/client/status`
  *   body (T16's sub-client probe) into the client group's connection line.
- * - `ZenRemoteSettingsForm` stages the row-layer field edits and saves them as
+ * - `AugRemoteSettingsForm` stages the row-layer field edits and saves them as
  *   one `mutate(ops, expectedRevision)` call, and owns the two DIRECT writes
  *   of the client group (pairing write / token clear) plus the device token's
  *   configured flag read from the describe view's secrets sidecar. Since T17
@@ -67,7 +67,7 @@ export interface GatewayStatus {
 }
 
 /**
- * The `GET /_dsh/zen-remote/admin/status` body, exactly as src/admin-routes.ts
+ * The `GET /_dsh/aug-remote/admin/status` body, exactly as src/admin-routes.ts
  * answers it: the gateway payload lives NESTED under `gateway` (null when the
  * gateway did not answer healthily) and `gatewayStatus` is the HTTP status the
  * route saw (`null` when there was no answer at all).
@@ -85,18 +85,18 @@ export interface AdminStatusBody {
 }
 
 /** Same-origin admin routes the settings block talks to (host half: T14). */
-export const ADMIN_STATUS_ROUTE = '/_dsh/zen-remote/admin/status'
-export const ADMIN_PAIR_ROUTE = '/_dsh/zen-remote/admin/pair'
-export const ADMIN_ACTION_ROUTE = '/_dsh/zen-remote/admin/action'
-export const ADMIN_PUSH_TEST_ROUTE = '/_dsh/zen-remote/admin/push-test'
+export const ADMIN_STATUS_ROUTE = '/_dsh/aug-remote/admin/status'
+export const ADMIN_PAIR_ROUTE = '/_dsh/aug-remote/admin/pair'
+export const ADMIN_ACTION_ROUTE = '/_dsh/aug-remote/admin/action'
+export const ADMIN_PUSH_TEST_ROUTE = '/_dsh/aug-remote/admin/push-test'
 /** PB-5: the plugin bridge's registered-plugin listing (GET, server-local only). */
-export const ADMIN_PLUGIN_BRIDGE_ROUTE = '/_dsh/zen-remote/admin/plugin-bridge'
+export const ADMIN_PLUGIN_BRIDGE_ROUTE = '/_dsh/aug-remote/admin/plugin-bridge'
 
 /** Same-origin client routes the sub-client block talks to (host half: T16). */
-export const CLIENT_CLAIM_ROUTE = '/_dsh/zen-remote/client/claim'
-export const CLIENT_STATUS_ROUTE = '/_dsh/zen-remote/client/status'
+export const CLIENT_CLAIM_ROUTE = '/_dsh/aug-remote/client/claim'
+export const CLIENT_STATUS_ROUTE = '/_dsh/aug-remote/client/status'
 /** T43: one immediate reconnect — answered 409 unless the client is offline. */
-export const CLIENT_RECONNECT_ROUTE = '/_dsh/zen-remote/client/reconnect'
+export const CLIENT_RECONNECT_ROUTE = '/_dsh/aug-remote/client/reconnect'
 
 /** The lightweight client-facing config route (host half, both roles): the
  * settings page's FALLBACK role probe (T17) — it registers wherever a
@@ -122,7 +122,7 @@ export const DEVICE_TOKEN_FIELD = 'deviceToken'
 // --- client-half wire shapes -------------------------------------------------
 
 /**
- * The `GET /_dsh/zen-remote/client/status` body, exactly as
+ * The `GET /_dsh/aug-remote/client/status` body, exactly as
  * src/client-routes.ts answers it: `serverUrl` is present only once a token
  * exists (the unpaired answer is `{ state: 'unpaired' }` alone). The token
  * itself never rides any status response. The T43 diagnostics fields ride
@@ -378,7 +378,7 @@ export function clientStatusLineOf(view: ClientConnectionView, now: number): Cli
   }
 }
 
-/** The `POST /_dsh/zen-remote/client/claim` body (T16's pairing round-trip;
+/** The `POST /_dsh/aug-remote/client/claim` body (T16's pairing round-trip;
  * on success `token` is the gateway-minted device token — it appears exactly
  * once, on its way into the row's secret field). */
 export interface ClaimRouteBody {
@@ -950,7 +950,7 @@ export interface SettingsSecretFieldState {
 }
 
 /** The whole staged-form snapshot the page renders. */
-export interface ZenRemoteFormState extends SettingsFormShellState {
+export interface AugRemoteFormState extends SettingsFormShellState {
   /** The shared form's scope sync state, reactively exposed so the page's
    * role probe can wait out the mirror's loading phase. */
   scopeStatus: 'loading' | 'ready' | 'unavailable'
@@ -992,7 +992,7 @@ type Staged = { text: string } | { clear: true }
  * source is `env` are locked via {@link setLockedFields}: they cannot be
  * staged, because a written value would be shadowed by the environment anyway.
  */
-export class ZenRemoteSettingsForm {
+export class AugRemoteSettingsForm {
   private readonly listeners = new Set<() => void>()
   private readonly staged = new Map<string, Staged>()
   private readonly lockedFields = new Set<string>()
@@ -1018,7 +1018,7 @@ export class ZenRemoteSettingsForm {
   private failed = false
   /** Revision the drafts started from; the save's `expectedRevision` fence. */
   private stagedRevision: number | undefined
-  private cache: ZenRemoteFormState | undefined
+  private cache: AugRemoteFormState | undefined
   private readonly unsubscribe: () => void
 
   /**
@@ -1036,7 +1036,7 @@ export class ZenRemoteSettingsForm {
   }
 
   /** @returns the current form snapshot (stable reference until the next change). */
-  getSnapshot(): ZenRemoteFormState {
+  getSnapshot(): AugRemoteFormState {
     if (this.cache === undefined) this.cache = this.project()
     return this.cache
   }
@@ -1393,7 +1393,7 @@ export class ZenRemoteSettingsForm {
     return ops
   }
 
-  private project(): ZenRemoteFormState {
+  private project(): AugRemoteFormState {
     const snap = this.scope.getSnapshot()
     const user = asRecord(snap.user)
     const fields = {} as Record<SettingsFieldName, SettingsFieldState>

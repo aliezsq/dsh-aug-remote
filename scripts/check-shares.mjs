@@ -390,7 +390,7 @@ test('shareFailText maps the server codes to the alert copy', () => {
 })
 
 test('the route constant matches the T33a wire path', () => {
-  assert.equal(ADMIN_SHARES_ROUTE, '/_dsh/zen-remote/admin/shares')
+  assert.equal(ADMIN_SHARES_ROUTE, '/_dsh/aug-remote/admin/shares')
 })
 
 await testChain

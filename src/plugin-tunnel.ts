@@ -169,7 +169,7 @@ export function createPluginTunnel(options: CreatePluginTunnelOptions): PluginTu
   }
 
   const deviceOf = (req: IncomingMessage): string => {
-    const raw = req.headers['x-zen-remote-device']
+    const raw = req.headers['x-aug-remote-device']
     const value = Array.isArray(raw) ? raw[0] : raw
     return typeof value === 'string' ? value : ''
   }

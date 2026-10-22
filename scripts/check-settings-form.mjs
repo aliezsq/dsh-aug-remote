@@ -28,7 +28,7 @@ import {
   normalizePairingCode,
   savedRowRole,
   settingsPollOf,
-  ZenRemoteSettingsForm,
+  AugRemoteSettingsForm,
 } from '../src/client-data/settings-form.ts'
 
 // Tiny sequential runner so the file stays plain node:assert (no node:test import).
@@ -224,7 +224,7 @@ function fakeScope(overrides = {}) {
 
 test('fields display the EFFECTIVE value while the row layer stores nothing', () => {
   const { scope } = fakeScope()
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline(VALUES) // config.values from admin/status
   const snap = form.getSnapshot()
   assert.equal(snap.port.text, '4000', 'a file-supplied port shows its effective value')
@@ -237,7 +237,7 @@ test('fields display the EFFECTIVE value while the row layer stores nothing', ()
 
 test('a field the row layer stores shows the RESOLVED value unless the saved value is invalid (T15-fix 3)', () => {
   const { scope } = fakeScope({ user: { port: 99999, serverName: '  ' } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline(VALUES)
   // resolveConfig skipped the stored port 99999 (out of range) — the file
   // layer supplies 4000 and admin/status flags savedRowInvalid for port. The
@@ -251,7 +251,7 @@ test('a field the row layer stores shows the RESOLVED value unless the saved val
   // Same stored shape, but the row value is LEGAL: the box shows the
   // normalized resolved value, not the raw one (T15-fix 3).
   const normalized = fakeScope({ user: { trustedProxies: ['10.0.0.1', '10.0.0.2'], pushTool: 1 } })
-  const normForm = new ZenRemoteSettingsForm(normalized.scope)
+  const normForm = new AugRemoteSettingsForm(normalized.scope)
   normForm.setBaseline({ ...VALUES, trustedProxies: '10.0.0.1,10.0.0.2', pushTool: true })
   const normSnap = normForm.getSnapshot()
   assert.equal(normSnap.trustedProxies.text, '10.0.0.1,10.0.0.2', 'a stored array shows the comma string resolveConfig produces')
@@ -264,7 +264,7 @@ test('a field the row layer stores shows the RESOLVED value unless the saved val
 
 test('env-locked fields show the effective value and cannot be staged', async () => {
   const { scope, state } = fakeScope({ user: { rateLimit: 5 } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline({ ...VALUES, rateLimit: 90 }) // env supplies 90
   form.setLockedFields(['rateLimit'])
   const snap = form.getSnapshot()
@@ -287,7 +287,7 @@ test('env-locked fields show the effective value and cannot be staged', async ()
 
 test('the draft comparison baseline is the displayed value', async () => {
   const { scope, state } = fakeScope()
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline(VALUES) // effective port: 4000 (file), row stores nothing
   form.stage('port', '4000') // re-typing exactly what the box shows
   assert.equal(form.canSave(), false, 'no phantom override for the displayed effective value')
@@ -302,7 +302,7 @@ test('the draft comparison baseline is the displayed value', async () => {
 
 test('validation: out-of-range drafts block the save instead of being dropped', async () => {
   const { scope, state } = fakeScope()
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline(VALUES)
 
   form.stage('port', '70000')
@@ -324,7 +324,7 @@ test('validation: out-of-range drafts block the save instead of being dropped', 
 
 test('an empty draft plans an unset for a field the user layer carries', async () => {
   const { scope, state } = fakeScope({ user: { host: '0.0.0.0' } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.stage('host', '')
   assert.equal(form.canSave(), true)
   await form.save()
@@ -333,7 +333,7 @@ test('an empty draft plans an unset for a field the user layer carries', async (
 
 test('typing-empty plans an unset; a reset of a non-carried field writes nothing', async () => {
   const { scope, state } = fakeScope()
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline(VALUES) // the box shows the effective mailto:…, so '' is a real change
   // 留空 = 清除：a typed-empty draft plans the unset even when the row layer
   // does not currently carry the field (the composition layer wins on save).
@@ -343,7 +343,7 @@ test('typing-empty plans an unset; a reset of a non-carried field writes nothing
   assert.deepEqual(state.mutateCalls[0].ops, [{ op: 'unset', path: ['vapidSubject'] }])
 
   // The reset control, in contrast, only writes for a field the user layer carries.
-  const clean = new ZenRemoteSettingsForm(scope)
+  const clean = new AugRemoteSettingsForm(scope)
   clean.resetField('vapidSubject')
   assert.equal(clean.canSave(), false)
   await clean.save()
@@ -352,7 +352,7 @@ test('typing-empty plans an unset; a reset of a non-carried field writes nothing
 
 test('a legal draft plans a set; a draft equal to the current value plans nothing', async () => {
   const { scope, state } = fakeScope({ value: { host: '127.0.0.1' } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.stage('port', '4001')
   form.stage('pushSummary', 'true')
   form.stage('lang', 'zh')
@@ -374,7 +374,7 @@ test('a legal draft plans a set; a draft equal to the current value plans nothin
 
 test('the save fences with the revision the drafts started from', async () => {
   const { scope, state } = fakeScope()
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.stage('port', '4001')
   // The mirror moves underneath after staging: the fence must stay at 7.
   state.snapshot = { ...state.snapshot, revision: 9 }
@@ -386,7 +386,7 @@ test('the save fences with the revision the drafts started from', async () => {
 
 test('a refused save keeps its drafts and reports failure', async () => {
   const { scope, state } = fakeScope({ mutateResult: false })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.stage('port', '4001')
   assert.equal(await form.save(), false)
   const snap = form.getSnapshot()
@@ -396,19 +396,19 @@ test('a refused save keeps its drafts and reports failure', async () => {
 })
 
 test('an unavailable or read-only form cannot save', async () => {
-  const unavailable = new ZenRemoteSettingsForm(fakeScope({ ready: false }).scope)
+  const unavailable = new AugRemoteSettingsForm(fakeScope({ ready: false }).scope)
   unavailable.stage('port', '4001')
   assert.equal(unavailable.canSave(), false)
   assert.equal(await unavailable.save(), false)
 
-  const readOnly = new ZenRemoteSettingsForm(fakeScope({ writable: false }).scope)
+  const readOnly = new AugRemoteSettingsForm(fakeScope({ writable: false }).scope)
   readOnly.stage('port', '4001')
   assert.equal(readOnly.canSave(), false)
 })
 
 test('rowUser exposes the raw user layer for the savedRowInvalid check', () => {
   const { scope } = fakeScope({ user: { port: 4000, host: '0.0.0.0', rateLimit: 60 } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   assert.deepEqual(form.rowUser(), { port: 4000, host: '0.0.0.0', rateLimit: 60 })
 })
 
@@ -420,7 +420,7 @@ test('a staged clear keeps showing the current value and flags `cleared` (T15-fi
   // never true. Now the box keeps the CURRENT value and the field carries
   // `cleared` for the "reverts on save" hint.
   const { scope, state } = fakeScope({ user: { port: 4000 } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline(VALUES) // effective port: 4000 (file layer wins over nothing here)
   form.resetField('port')
   const snap = form.getSnapshot()
@@ -431,7 +431,7 @@ test('a staged clear keeps showing the current value and flags `cleared` (T15-fi
 
   // Selects (role/lang) stay renderable too: the box shows a REAL option.
   const withRole = fakeScope({ user: { role: 'client' } })
-  const roleForm = new ZenRemoteSettingsForm(withRole.scope)
+  const roleForm = new AugRemoteSettingsForm(withRole.scope)
   roleForm.resetField('role')
   assert.equal(roleForm.getSnapshot().role.text, 'client')
   assert.equal(roleForm.getSnapshot().role.cleared, true)
@@ -615,7 +615,7 @@ test('clientStatusLineOf picks the diagnostics wording per state', () => {
 })
 
 test('CLIENT_RECONNECT_ROUTE is the one reconnect endpoint', () => {
-  assert.equal(CLIENT_RECONNECT_ROUTE, '/_dsh/zen-remote/client/reconnect')
+  assert.equal(CLIENT_RECONNECT_ROUTE, '/_dsh/aug-remote/client/reconnect')
 })
 
 test('normalizePairingCode uppercases and strips spaces and hyphens', () => {
@@ -627,7 +627,7 @@ test('normalizePairingCode uppercases and strips spaces and hyphens', () => {
 
 test('writeClientPairing lands one mutate — address, token AND the registered name (T60) — and clears the draft fence', async () => {
   const { scope, state } = fakeScope()
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   assert.equal(await form.writeClientPairing('http://192.168.1.10:3088', 'tok-xyz', '书房的台式机'), true)
   assert.equal(state.mutateCalls.length, 1)
   assert.deepEqual(state.mutateCalls[0].ops, [
@@ -641,7 +641,7 @@ test('writeClientPairing lands one mutate — address, token AND the registered 
   // draft staged BEFORE the pairing write must save against the NEW revision,
   // not the one it was staged under.
   const staged = fakeScope()
-  const stForm = new ZenRemoteSettingsForm(staged.scope)
+  const stForm = new AugRemoteSettingsForm(staged.scope)
   stForm.stage('host', '0.0.0.0')
   assert.equal(await stForm.writeClientPairing('http://x.local', 'tok', '台式机'), true)
   await stForm.save()
@@ -651,7 +651,7 @@ test('writeClientPairing lands one mutate — address, token AND the registered 
 
 test('T60: the name draft did its job — discardField retires it once the pairing write landed', async () => {
   const { scope } = fakeScope({ value: { role: 'client' } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   // The user typed a (legal) name and paired WITHOUT saving: the draft
   // stages, the claim uses it, and the write lands it in the row.
   form.stage('serverName', '书房的台式机')
@@ -671,23 +671,23 @@ test('T60: the name draft did its job — discardField retires it once the pairi
 
 test('clearDeviceToken unsets only the token and keeps the address', async () => {
   const { scope, state } = fakeScope()
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   assert.equal(await form.clearDeviceToken(), true)
   assert.deepEqual(state.mutateCalls[0].ops, [{ op: 'unset', path: ['deviceToken'] }])
 })
 
 test('the direct writes refuse when the form is unavailable, read-only or already saving', async () => {
-  const unavailable = new ZenRemoteSettingsForm(fakeScope({ ready: false }).scope)
+  const unavailable = new AugRemoteSettingsForm(fakeScope({ ready: false }).scope)
   assert.equal(await unavailable.writeClientPairing('http://x.local', 'tok', '名'), false)
   assert.equal(await unavailable.clearDeviceToken(), false)
 
-  const readOnly = new ZenRemoteSettingsForm(fakeScope({ writable: false }).scope)
+  const readOnly = new AugRemoteSettingsForm(fakeScope({ writable: false }).scope)
   assert.equal(await readOnly.writeClientPairing('http://x.local', 'tok', '名'), false)
 
   // A refused mutate reports failure through the return value; the frame's
   // staged-save `failed` flag stays untouched (pairing has its own copy).
   const refused = fakeScope({ mutateResult: false })
-  const refusedForm = new ZenRemoteSettingsForm(refused.scope)
+  const refusedForm = new AugRemoteSettingsForm(refused.scope)
   assert.equal(await refusedForm.clearDeviceToken(), false)
   assert.equal(refusedForm.getSnapshot().failed, false)
 })
@@ -695,7 +695,7 @@ test('the direct writes refuse when the form is unavailable, read-only or alread
 test('the device token rides the snapshot as presence only, and rowValue reads the saved document', () => {
   let configured = false
   const { scope } = fakeScope({ value: { role: 'client', serverUrl: 'http://192.168.1.10:3088' } })
-  const form = new ZenRemoteSettingsForm(scope, () => configured)
+  const form = new AugRemoteSettingsForm(scope, () => configured)
   assert.equal(form.getSnapshot().deviceToken.configured, false)
   assert.equal(form.rowValue('role'), 'client')
   assert.equal(form.rowValue('serverUrl'), 'http://192.168.1.10:3088')
@@ -742,7 +742,7 @@ test('settingsPollOf: loading polls nothing; a known row role decides; otherwise
 })
 
 test('the controller falls back to the probed role; a stored row role wins over it', () => {
-  const noRole = new ZenRemoteSettingsForm(fakeScope({ value: {} }).scope)
+  const noRole = new AugRemoteSettingsForm(fakeScope({ value: {} }).scope)
   assert.equal(noRole.savedRoleIsClient(), false, 'no row role, no probe yet: host default')
   assert.equal(noRole.statusPoll(), 'none', 'the poll waits for the probe')
   noRole.setProbedRole('client')
@@ -754,11 +754,11 @@ test('the controller falls back to the probed role; a stored row role wins over 
   noRole.setProbedRole(undefined)
   assert.equal(noRole.statusPoll(), 'none', 'clearing the probe re-arms the wait')
 
-  const hostRow = new ZenRemoteSettingsForm(fakeScope({ value: { role: 'host' } }).scope)
+  const hostRow = new AugRemoteSettingsForm(fakeScope({ value: { role: 'host' } }).scope)
   hostRow.setProbedRole('client')
   assert.equal(hostRow.savedRoleIsClient(), false, 'a stored row role beats a stale probe')
   assert.equal(hostRow.statusPoll(), 'admin')
-  const clientRow = new ZenRemoteSettingsForm(fakeScope({ user: { role: 'client' } }).scope)
+  const clientRow = new AugRemoteSettingsForm(fakeScope({ user: { role: 'client' } }).scope)
   clientRow.setProbedRole('host')
   assert.equal(clientRow.savedRoleIsClient(), true)
   assert.equal(clientRow.statusPoll(), 'client')
@@ -774,7 +774,7 @@ test('the poll source follows a role switch at the NEXT snapshot, admin never on
   assert.equal(settingsPollOf('ready', { value: { role: 'host' } }), 'admin')
   // The controller reads the same decisions off its live scope.
   const clientScope = fakeScope({ value: { role: 'client' } }).scope
-  const clientForm = new ZenRemoteSettingsForm(clientScope)
+  const clientForm = new AugRemoteSettingsForm(clientScope)
   assert.equal(clientForm.savedRoleIsClient(), true)
   assert.equal(clientForm.statusPoll(), 'client')
   assert.equal(clientForm.scopeStatus(), 'ready')
@@ -785,7 +785,7 @@ test('the poll source follows a role switch at the NEXT snapshot, admin never on
 test('restartPending tracks staged drafts over the restart-required fields only', async () => {
   // The row layer stores port, so the staged clear below plans an unset.
   const { scope, state } = fakeScope({ value: { port: 4000 }, user: { port: 4000 } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline(VALUES)
   assert.equal(form.getSnapshot().restartPending, false, 'nothing staged yet')
 
@@ -817,7 +817,7 @@ test('restartPending tracks staged drafts over the restart-required fields only'
 test('restartPending only promises a reload when a save would actually write a change (T17b)', async () => {
   // A draft equal to the displayed effective value plans no op → no note.
   const { scope } = fakeScope({ value: { port: 4000 }, user: { port: 4000 } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   form.setBaseline(VALUES) // effective port: 4000
   form.stage('port', '4000')
   assert.equal(form.getSnapshot().restartPending, false, 'a draft equal to the effective value is no change at all')
@@ -833,7 +833,7 @@ test('restartPending only promises a reload when a save would actually write a c
   // the lock landed does not count either (a written value would be
   // shadowed by the variable, and plan() skips locked fields).
   const env = fakeScope({ user: { port: 4000 } })
-  const envForm = new ZenRemoteSettingsForm(env.scope)
+  const envForm = new AugRemoteSettingsForm(env.scope)
   envForm.setBaseline(VALUES)
   envForm.stage('port', '4001')
   assert.equal(envForm.getSnapshot().restartPending, true, 'still a plain staged change here')
@@ -843,7 +843,7 @@ test('restartPending only promises a reload when a save would actually write a c
   // A staged clear of a restart field the row layer does NOT carry plans
   // no op → no note.
   const clear = fakeScope()
-  const clearForm = new ZenRemoteSettingsForm(clear.scope)
+  const clearForm = new AugRemoteSettingsForm(clear.scope)
   clearForm.setBaseline(VALUES)
   clearForm.resetField('port')
   assert.equal(clearForm.getSnapshot().restartPending, false, 'nothing to revert: the row stores no port')
@@ -860,7 +860,7 @@ test('T57: serverName stages and saves on a CLIENT page — the role card is its
   // both roles now; on a client page (no admin/status, no baseline since T55)
   // an unstored name displays EMPTY and staging still plans the write.
   const { scope, state } = fakeScope({ value: { role: 'client' } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   assert.equal(form.statusPoll(), 'client')
   assert.equal(form.getSnapshot().serverName.text, '', 'an unstored name displays empty on a client page')
 
@@ -917,7 +917,7 @@ test('T59: the follow decision — server name wins only when carried, differing
 
 test('T59: hasDraft tracks the staged map; writeDeviceName lands one serverName set', async () => {
   const { scope, state } = fakeScope({ value: { role: 'client' } })
-  const form = new ZenRemoteSettingsForm(scope)
+  const form = new AugRemoteSettingsForm(scope)
   assert.equal(form.hasDraft('serverName'), false, 'nothing staged yet')
 
   form.stage('serverName', '用户正在打字')

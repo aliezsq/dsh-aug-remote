@@ -186,5 +186,5 @@ export function startRemoteGroupExpansionKeeper(options: RemoteGroupExpansionKee
  * probe, same 1s cadence — its own timer, its own file.
  */
 export function mountRemoteGroupExpansionKeeper(ctx: { effect(fn: () => () => void, name: string): void }, options: RemoteGroupExpansionKeeperOptions = {}): void {
-  ctx.effect(() => startRemoteGroupExpansionKeeper(options), 'dsh-zen-remote: remote group expansion keeper')
+  ctx.effect(() => startRemoteGroupExpansionKeeper(options), 'dsh-aug-remote: remote group expansion keeper')
 }

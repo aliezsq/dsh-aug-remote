@@ -303,7 +303,7 @@ export function MobileSessionInfo({
             // whole export. The original error stays on the console for
             // diagnosis; the notice row tells the user what they got (no
             // "操作失败" prefix — the delivery succeeded, review 07+08).
-            console.error('[dsh-zen-remote] share-image: stitch failed — delivering the painted slices as multiple images instead', err)
+            console.error('[dsh-aug-remote] share-image: stitch failed — delivering the painted slices as multiple images instead', err)
             await deliverShareImages(result.slices, title)
             return t('shareStitchFailed')
           }

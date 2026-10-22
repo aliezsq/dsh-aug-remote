@@ -1,6 +1,6 @@
 # tag push (v*) -> build, verify, test, then attach the tarball to a GitHub
 # Release. This fork does NOT publish to npm: the package name
-# `dsh-zen-remote` belongs to upstream.
+# `dsh-aug-remote` belongs to upstream.
 name: release
 
 on:

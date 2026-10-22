@@ -1,4 +1,4 @@
-/* dsh-zen-remote · sameOriginPost (src/http.ts, T16-fix 2)
+/* dsh-aug-remote · sameOriginPost (src/http.ts, T16-fix 2)
  *
  * The state-changing gate every browser-facing POST applies. The matrix the
  * T16-fix review pinned:

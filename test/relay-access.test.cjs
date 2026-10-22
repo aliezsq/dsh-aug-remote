@@ -1,4 +1,4 @@
-/* dsh-zen-remote · T22a-fix relay access control (src/relay-access.ts)
+/* dsh-aug-remote · T22a-fix relay access control (src/relay-access.ts)
  *
  * The registry is the security boundary now, so these tests pin BOTH halves
  * of it: every REGISTERED method must authorize strictly along its declared

@@ -1,4 +1,4 @@
-/* dsh-zen-remote · the plugin bridge's adapter framework (PB-11)
+/* dsh-aug-remote · the plugin bridge's adapter framework (PB-11)
  *
  * Three layers, one file:
  *  1. the CORE pure logic (lib/plugin-adapter-core.js): route validation,
@@ -24,7 +24,7 @@ const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 const { Readable, Transform } = require('node:stream')
 
-const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-zen-remote-adapter-'))
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-aug-remote-adapter-'))
 process.on('exit', () => { try { fs.rmSync(ROOT, { recursive: true, force: true }) } catch { /* best effort */ } })
 
 const importLib = async (name) => import(pathToFileURL(path.join(__dirname, '..', 'lib', name)).href)
@@ -312,7 +312,7 @@ test('PB-11 client: a query-located remote request forwards with the REAL id; lo
     // mixed → 503 bad-query, never the local plugin
     const mixed = await host.get(`/some-panel/data?sid=${encodeURIComponent(virtual('a'))}&sid=plain`)
     assert.equal(mixed.status, 503)
-    assert.equal(mixed.headers.get('x-zen-remote'), 'unbridged')
+    assert.equal(mixed.headers.get('x-aug-remote'), 'unbridged')
     assert.deepEqual(await mixed.json(), { ok: false, error: { code: 'zr-plugin-unbridged', reason: 'bad-query', plugin: 'some-panel' } })
     assert.equal(host.hits.local, 2, 'the mixed request never reached the local plugin')
   } finally {
@@ -534,13 +534,13 @@ async function startServerSide({ adapter, consent = true, shared = ['session-a']
     loopbackHits,
     pluginPost: (path, query, { method = 'POST', body, digest, version = '1.2.3' } = {}) =>
       // v1/plugin is a POST route; the PLUGIN method rides x-zr-method.
-      fetch(`http://127.0.0.1:${port}/_dsh/zen-remote/relay/v1/plugin`, {
+      fetch(`http://127.0.0.1:${port}/_dsh/aug-remote/relay/v1/plugin`, {
         method: 'POST',
         headers: {
-          'x-zen-remote-secret': 's'.repeat(64),
-          'x-zen-remote-via': 'gateway',
-          'x-zen-remote-role': 'desktop-client',
-          'x-zen-remote-device': 'dev-1',
+          'x-aug-remote-secret': 's'.repeat(64),
+          'x-aug-remote-via': 'gateway',
+          'x-aug-remote-role': 'desktop-client',
+          'x-aug-remote-device': 'dev-1',
           'x-zr-plugin': 'some-panel',
           'x-zr-plugin-version': version,
           'x-zr-plugin-digest': digest ?? adapter.digest,

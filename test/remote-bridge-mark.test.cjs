@@ -1,4 +1,4 @@
-// dsh-zen-remote · PB-14: the bridge stamp's pure core
+// dsh-aug-remote · PB-14: the bridge stamp's pure core
 // (src/client-data/remote-status.ts)
 //
 // The remote-status body's `bridgedPlugins` list decides whether the

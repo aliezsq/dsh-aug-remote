@@ -1,4 +1,4 @@
-// dsh-zen-remote · T62 current-session signal (src/client-data/current-session.ts
+// dsh-aug-remote · T62 current-session signal (src/client-data/current-session.ts
 // + src/client/current-session-report.ts)
 //
 // The browser half of the current-session pipeline, driven the dynamic .ts
@@ -87,7 +87,7 @@ test('T62 reporter: page load posts once, an unchanged value never re-posts, a c
   try {
     await wait(40)
     assert.deepEqual(env.posted, [
-      { url: '/_dsh/zen-remote/client/current-session', body: { sessionId: 'zr~721b94fb~s1' } },
+      { url: '/_dsh/aug-remote/client/current-session', body: { sessionId: 'zr~721b94fb~s1' } },
     ], 'the initial value travels exactly once; the 1s check sees the same value and stays quiet')
 
     // The user navigates: the next tick (or storage/visibility event) posts
@@ -123,7 +123,7 @@ test('T62 reporter: an unavailable read never posts, and a failed POST retries o
     env.setFail(false)
     await wait(40)
     assert.deepEqual(env.posted, [
-      { url: '/_dsh/zen-remote/client/current-session', body: { sessionId: 'zr~721b94fb~s1' } },
+      { url: '/_dsh/aug-remote/client/current-session', body: { sessionId: 'zr~721b94fb~s1' } },
     ], 'the retry carries the same value exactly once')
     await wait(40)
     assert.equal(env.posted.length, 1, 'and then it stays quiet again')

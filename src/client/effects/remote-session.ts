@@ -53,14 +53,14 @@ function bridgeNoteOf(language: string | undefined): string {
 export function installRemoteSessionGuard(ctx: ClientContext): void {
   ctx.effect(() => {
     const tag = document.createElement('style')
-    tag.dataset.plugin = 'dsh-zen-remote'
-    tag.dataset.pluginCss = 'dsh-zen-remote/remote-session.css'
+    tag.dataset.plugin = 'dsh-aug-remote'
+    tag.dataset.pluginCss = 'dsh-aug-remote/remote-session.css'
     tag.textContent = REMOTE_SESSION_CSS
     document.head.appendChild(tag)
     return () => {
       tag.remove()
     }
-  }, 'dsh-zen-remote: remote-session styles')
+  }, 'dsh-aug-remote: remote-session styles')
 
   ctx.effect(() => {
     const apply = (): void => {
@@ -80,7 +80,7 @@ export function installRemoteSessionGuard(ctx: ClientContext): void {
       for (const off of offs) off()
       document.documentElement.removeAttribute('data-zr-remote-session')
     }
-  }, 'dsh-zen-remote: remote-session attribute')
+  }, 'dsh-aug-remote: remote-session attribute')
 
   // The bridge stamp (PB-14): while a REMOTE session is on screen, the
   // remote-status poll's `bridgedPlugins` decides whether better-sidebar is
@@ -136,5 +136,5 @@ export function installRemoteSessionGuard(ctx: ClientContext): void {
       offStore?.()
       clear()
     }
-  }, 'dsh-zen-remote: bridge stamp')
+  }, 'dsh-aug-remote: bridge stamp')
 }

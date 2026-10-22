@@ -1,4 +1,4 @@
-/* dsh-zen-remote · the plugin bridge's loopback executor (PB-3)
+/* dsh-aug-remote · the plugin bridge's loopback executor (PB-3)
  *
  * Drives the BUILT lib/plugin-loopback.js against a local node:http fake
  * DSH — the shape the production loopback dials: `GET /?token=<good>`

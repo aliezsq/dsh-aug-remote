@@ -98,5 +98,5 @@ export function installNativeTriggerOverlay(ctx: ClientContext): void {
       phone.removeEventListener('change', schedule)
       for (const t of document.querySelectorAll<HTMLElement>(`[${TAKEN}]`)) release(t)
     }
-  }, 'dsh-zen-remote: native trigger overlay')
+  }, 'dsh-aug-remote: native trigger overlay')
 }

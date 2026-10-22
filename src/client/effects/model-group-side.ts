@@ -128,5 +128,5 @@ export function installModelGroupSide(ctx: ClientContext): void {
         section.removeAttribute(STAMP)
       }
     }
-  }, 'dsh-zen-remote: model group side')
+  }, 'dsh-aug-remote: model group side')
 }

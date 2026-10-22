@@ -1,6 +1,6 @@
 # 公网接入（通道半边详解）
 
-> `dsh-zen-remote` 的通道半边完整文档：反代对接、设备角色与配对流程、环境变量、管理 API、远程中继、推送、安全边界。
+> `dsh-aug-remote` 的通道半边完整文档：反代对接、设备角色与配对流程、环境变量、管理 API、远程中继、推送、安全边界。
 > 安装与快速上手见[根 README](../README.zh-CN.md)；界面侧细节见 [interface.md](interface.md)。
 > 网关基座衍生自 MIT 的 [`dsh-mobile-gate`](https://github.com/Bernardxu123/dsh-mobile-gate)。
 
@@ -11,8 +11,8 @@
 | 模块 | 说明 |
 | --- | --- |
 | 🔑 **公网身份** | 网关只监听 `127.0.0.1`，放在你自己的反代后面；新设备用配对码换取长期设备令牌（Web 应用端存 Cookie `lg_device`，桌面应用端拿 JSON 令牌），身份跟着令牌走，与来源 IP 完全无关 |
-| 👥 **设备角色** | 配对码生成时绑定角色：**Web 应用端**（手机/平板/浏览器，经网关访问全部会话）与**桌面应用端**（另一台 DSH 桌面端、zen-remote 子客户端角色，只能访问中继前缀、只见已共享会话）。拿错通道用码会被明确拒绝且不消耗码 |
-| 📡 **远程中继** | 桌面应用端与主服务端之间走 zen-remote 自己的中继协议（HTTP 单次调用 + NDJSON 流式订阅），服务端按「方法允许清单」逐请求复核会话归属，未共享会话的数据一步都出不来 |
+| 👥 **设备角色** | 配对码生成时绑定角色：**Web 应用端**（手机/平板/浏览器，经网关访问全部会话）与**桌面应用端**（另一台 DSH 桌面端、aug-remote 子客户端角色，只能访问中继前缀、只见已共享会话）。拿错通道用码会被明确拒绝且不消耗码 |
+| 📡 **远程中继** | 桌面应用端与主服务端之间走 aug-remote 自己的中继协议（HTTP 单次调用 + NDJSON 流式订阅），服务端按「方法允许清单」逐请求复核会话归属，未共享会话的数据一步都出不来 |
 | 📱 **真 PWA** | `manifest.json` + service worker：反代带来 HTTPS 后，手机浏览器「添加到主屏」真正生效，全屏独立窗口运行，带图标/启动屏/主题色 |
 | 🌐 **离线可用** | service worker（v3）：只有真正的静态壳（manifest/图标/离线页）缓存优先，其余（DSH 客户端 JS/CSS、API、页面 HTML）一律网络优先——装了新版本手机上立刻吃到，不会像早期版本那样在部署之后还残留旧 CSS |
 | 👆 **触屏手势** | 捏合缩放字体（可重置）；左缘返回手势已让位给界面半边（见下方「分工」），下拉刷新已整体移除（误触发全页重载会把人从对话中间弹回列表） |
@@ -36,7 +36,7 @@
         │                  │                          │                         │
    未配对设备         Web 应用端(已配对)              桌面应用端(已配对)          本机直连(无 X-Forwarded-* 头)
    → 任意路径都跳配对页  → 反代到 DSH(自动发现的          → 只放行中继前缀             → 管理页(只剩说明)/管理 API
-     提交配对码换令牌     实际端口)，带设备标记头            /_dsh/zen-remote/relay/*     /lan-gate/status /action /pair
+     提交配对码换令牌     实际端口)，带设备标记头            /_dsh/aug-remote/relay/*     /lan-gate/status /action /pair
                        + Bearer 共享密钥，其余路径 403    (含共享密钥与设备标记头)       /pwa/push/send
 ```
 
@@ -73,7 +73,7 @@
 
 ### 1. 安装插件
 
-桌面端 App 与 Web 端都可以在左侧「插件」页 →「添加插件」→ 输入 `dsh-zen-remote` → 点「立即启用」；无头机器上的 Web 服务也可以用命令行：
+桌面端 App 与 Web 端都可以在左侧「插件」页 →「添加插件」→ 输入 `dsh-aug-remote` → 点「立即启用」；无头机器上的 Web 服务也可以用命令行：
 
 ```bash
 dsh plugin --profile web add dsh-aug-remote
@@ -240,9 +240,9 @@ sudo cloudflared service install      # 通了再装成常驻服务
 
 ### 3. 生成配对码、配对设备
 
-2.0 起配对码从 DSH「插件」页 → dsh-zen-remote 设置区块生成（旧地址 `/lan-gate/admin` 只剩一段指向设置页的说明，仍只认本机直连）：
+2.0 起配对码从 DSH「插件」页 → dsh-aug-remote 设置区块生成（旧地址 `/lan-gate/admin` 只剩一段指向设置页的说明，仍只认本机直连）：
 
-1. 反代配好后，在**这台机器本机**打开 DSH「插件」页，展开 dsh-zen-remote 的设置区块。
+1. 反代配好后，在**这台机器本机**打开 DSH「插件」页，展开 dsh-aug-remote 的设置区块。
 2. 选设备角色（Web 应用端 / 桌面应用端），点生成，得到一个 8 位码，10 分钟内有效，只能用一次。**码与角色绑定**：Web 应用端的码拿到桌面端去用会被拒绝，反之亦然；拿错的码不被消耗、也不计入错码锁定。
 3. Web 应用端：手机或另一台电脑的浏览器打开你反代的 HTTPS 域名，在配对页输入配对码（可选填设备名）。
 4. 桌面应用端：在另一台 DSH 桌面端的插件设置区块里把角色切成「子客户端」，填服务端地址与配对码。地址必须 https，只有内网/回环/Tailscale 段（`192.168.x`、`10.x`、`172.16–31.x`、`100.64.x`、`127.x`、`localhost`/`*.local`、IPv6 `::1`/`fc00::/7`/`fe80::/10`）才允许 http。
@@ -283,13 +283,13 @@ sudo cloudflared service install      # 通了再装成常驻服务
 
 改完需要重启网关/推送的字段（`role`、`port`、`host`、`targetPort`、`rateLimit`、`trustedProxies`、`vapidSubject`、`lang` 与推送各字段），插件自己检测指纹变化并重载插件行，网关子进程随之重启——不用手动重启 App。
 
-2.0 起网关与推送**不再各占一行**：包自带的 `cordis.patch.yml` 只挂 `dsh-zen-remote` 一行，主入口按 `role` 用 `ctx.plugin()` 加载这两个子插件，并把合并后的生效配置传给它们。profile 补丁里残留的旧 `dsh-zen-remote-gateway` / `dsh-zen-remote-push` 行会被 loader 警告并跳过，删掉即可——照老例子再手挂一行网关会拉起第二个网关进程抢端口。
+2.0 起网关与推送**不再各占一行**：包自带的 `cordis.patch.yml` 只挂 `dsh-aug-remote` 一行，主入口按 `role` 用 `ctx.plugin()` 加载这两个子插件，并把合并后的生效配置传给它们。profile 补丁里残留的旧 `dsh-aug-remote-gateway` / `dsh-aug-remote-push` 行会被 loader 警告并跳过，删掉即可——照老例子再手挂一行网关会拉起第二个网关进程抢端口。
 
 ---
 
 ## 🔌 管理 API
 
-以下接口全部**仅限本机直连**：请求的 socket 必须是回环地址、且不带任何 `X-Forwarded-*` 头、且 Host 是回环名（见上）。在这道判定之外还有两道针对浏览器的门（网页发出的跨站 POST 不需要预检，光靠 socket/Host 判定挡不住）：请求带 `Origin` 头一律 403，带请求体但 `Content-Type` 不是 `application/json` 一律 415——插件后台的代调用和脚本 `curl`（带 JSON 头、无 Origin）都不受影响。只要请求经过反代（一定带转发头），一律返回 403——公网碰不到这些接口。2.0 起这些接口的调用方从浏览器管理页换成了插件后台：设置页发起的请求走 DSH 同源路由 `/_dsh/zen-remote/admin/*`，由主服务端进程以「本机直连」的身份代调下面这些网关接口（带 `x-zen-remote-via` 标记的转发请求只许查看、拒绝变更——唯一例外是 `/_dsh/zen-remote/admin/shares` 的开关会话远程：Web 应用端（手机）可以开关，手机会话信息卡片里的「远程访问」开关就走这条）。
+以下接口全部**仅限本机直连**：请求的 socket 必须是回环地址、且不带任何 `X-Forwarded-*` 头、且 Host 是回环名（见上）。在这道判定之外还有两道针对浏览器的门（网页发出的跨站 POST 不需要预检，光靠 socket/Host 判定挡不住）：请求带 `Origin` 头一律 403，带请求体但 `Content-Type` 不是 `application/json` 一律 415——插件后台的代调用和脚本 `curl`（带 JSON 头、无 Origin）都不受影响。只要请求经过反代（一定带转发头），一律返回 403——公网碰不到这些接口。2.0 起这些接口的调用方从浏览器管理页换成了插件后台：设置页发起的请求走 DSH 同源路由 `/_dsh/aug-remote/admin/*`，由主服务端进程以「本机直连」的身份代调下面这些网关接口（带 `x-aug-remote-via` 标记的转发请求只许查看、拒绝变更——唯一例外是 `/_dsh/aug-remote/admin/shares` 的开关会话远程：Web 应用端（手机）可以开关，手机会话信息卡片里的「远程访问」开关就走这条）。
 
 | 接口 | 方法 | 作用 | 参数 |
 | --- | --- | --- | --- |
@@ -309,15 +309,15 @@ sudo cloudflared service install      # 通了再装成常驻服务
 
 ## 📡 远程中继（桌面应用端的数据通道）
 
-桌面应用端没有 DSH 的登录 Cookie，也不直接转发 DSH 的原生 `/api` 和 WebSocket——它和主服务端之间走 zen-remote 自己的中继协议：**单次调用是普通 HTTP POST，每条流式订阅是一个 HTTP 流式响应**，全部挂在主服务端插件的专用前缀 `/_dsh/zen-remote/relay/` 下，经网关进出。插件不自己实现 WebSocket；客户端中止请求即取消订阅。
+桌面应用端没有 DSH 的登录 Cookie，也不直接转发 DSH 的原生 `/api` 和 WebSocket——它和主服务端之间走 aug-remote 自己的中继协议：**单次调用是普通 HTTP POST，每条流式订阅是一个 HTTP 流式响应**，全部挂在主服务端插件的专用前缀 `/_dsh/aug-remote/relay/` 下，经网关进出。插件不自己实现 WebSocket；客户端中止请求即取消订阅。
 
 **三道门，逐请求复核**：
 
 1. **网关设备认证**：请求必须带有效的桌面应用端设备令牌（Bearer），网关只放行它去中继前缀；
-2. **标记头 + 共享密钥**：网关给每个放行的转发请求盖上 `x-zen-remote-via: gateway`、`x-zen-remote-role`、`x-zen-remote-device` 和 `x-zen-remote-secret`（共享密钥）四个头（客户端伪造的同名头在入口就被剥掉）；中继路由逐次校验密钥与三个标记头，任何一项不对一律 401。没有这道密钥，本机其他进程可以直连 `127.0.0.1` 伪造标记头冒充网关；
+2. **标记头 + 共享密钥**：网关给每个放行的转发请求盖上 `x-aug-remote-via: gateway`、`x-aug-remote-role`、`x-aug-remote-device` 和 `x-aug-remote-secret`（共享密钥）四个头（客户端伪造的同名头在入口就被剥掉）；中继路由逐次校验密钥与三个标记头，任何一项不对一律 401。没有这道密钥，本机其他进程可以直连 `127.0.0.1` 伪造标记头冒充网关；
 3. **按方法登记的访问控制**：每个允许的方法登记它的会话归属字段，授权只看登记的字段，表里没有的方法一律拒绝——**不是**「从参数里通用扫描会话 id」（那种写法会被诱饵字段骗过：塞一个已共享会话的 id 进不认识的名字里，DSH 的参数校验会悄悄丢掉它）。
 
-**路由一览**（前缀 `/_dsh/zen-remote/relay`）：
+**路由一览**（前缀 `/_dsh/aug-remote/relay`）：
 
 | 路由 | 方法 | 作用 |
 | --- | --- | --- |
@@ -333,7 +333,7 @@ sudo cloudflared service install      # 通了再装成常驻服务
 
 **允许清单里的方法**（其余一律 `forbidden-method`）：会话读写（`session/follow`、`session/page`、`session/prompt`、`session/cancel`、`session/rename`、`session/selectModel`、`session/updateQueue`、`session/attachment`、`session/projections`）、新建与分叉（`session/create`、`session/fork`，结果自动共享）、子智能体（`subagents/prompt`、`subagents/interruptByParent`，按父会话判定）、附件与 @ 引用（`fileUploads/upload`、`fileReferences/list`、`sessionReferenceResolver/candidates`）、面板长尾（`goals/*` 五个、`commands/list|execute`、`agentPresets/select`、`sessionFeedback/record`）、文件树与预览（`workspaceFiles/list|changes|read|readBytes|stat`）、终端（`terminal/*`）、任务（`job/list|follow|kill`）、`skills/list`、消息反馈（`messageFeedback/*`）、`schedule/list`、工作区会话操作（`workspace/pinSession` 等）、以及四个全局读：`session/control` 流、`session/list`、`workspace/follow` 流与 `session/modelCatalog`。前三个不带会话参数，安全靠**输出过滤**：每一帧/每一行结果先按共享表过滤，未共享会话的行到不了客户端；`session/list` 结果行里指向不可访问会话的 `parentSessionId` 字段也会被删掉（行的其余部分照常透传）。`session/modelCatalog` 同样无参数、全局只读——它就是服务端的模型提供方目录，只有分组与模型 id、显示名，不带会话数据；服务端会把结果里的 `failures` 数组清空（宿主的逐组错误文本可能带端点或凭据细节，客户端本来也不展示它）。`sessionReferenceResolver/candidates`（@ 引用候选）的答案带**每一个**服务端会话的标题、目录与现成 mention，同样走行级输出过滤，只放行已共享会话的行。审批/提问事件经 `$zr/events` 订阅转发，逐事件按 `agentId` 判定可达性；已共享会话的运行状态事件（`api-session/status` emit）也经同一条订阅转发（T75），按 `args[0]` 里的会话 id 判定可达性——这是唯一一种被放行的 emit。
 
-`/v1/http` 那条路由是另一张按**路由名**登记的允许清单（不是方法表的一部分），纪律相同：表外路由一律 404，登记的路由只按声明的会话参数判定；子客户端一侧的对应入口是 `GET /_dsh/zen-remote/client/http/<route>`——浏览器 fetch 包装拦下的 `/api/changes.*` 虚拟 id 请求改道到这里，还原原始 id 后经中继转发，上游 Content-Type 只认 JSON，其余一律降级为 `text/plain` + `nosniff`。
+`/v1/http` 那条路由是另一张按**路由名**登记的允许清单（不是方法表的一部分），纪律相同：表外路由一律 404，登记的路由只按声明的会话参数判定；子客户端一侧的对应入口是 `GET /_dsh/aug-remote/client/http/<route>`——浏览器 fetch 包装拦下的 `/api/changes.*` 虚拟 id 请求改道到这里，还原原始 id 后经中继转发，上游 Content-Type 只认 JSON，其余一律降级为 `text/plain` + `nosniff`。
 
 `/v1/upload` 这条路由的起点在**子客户端本机**：DSH 的非图片附件上传走 Web Worker 里发出的请求，`window.fetch` 包装与 typert 拦截都够不到它，所以插件在子客户端本机后台包装宿主连接服务 `fetchRoutes` 表里的上传路由（`/api/session/uploadFileBinary`）把请求接住——带虚拟会话 id 的上传经中继流式转到服务端（本机 id 的上传原样放行、请求体一个字节不碰），超上限在子客户端本地直接拒，慢链路受客户端侧 15 分钟上传预算约束（宿主 HTTP 服务的 5 分钟请求期限是实际上限）且上传的超时与传输失败不改连接状态。本地失败也按宿主自己的「200 + 失败信封」格式回给界面，中文错误文案直接落在附件卡片上。导出（`/api/session.export`）是同一次包装的另一项：虚拟 id 的导出请求后台直接 403 `remote-unsupported`（界面里菜单项也已隐藏）。
 
@@ -345,13 +345,13 @@ sudo cloudflared service install      # 通了再装成常驻服务
 - 终端是有意开放的（桌面应用端是可信设备）：开的是**服务端**的 PTY，以服务端用户身份运行、不受智能体沙箱与审批限制；关闭会话的远程时终端流一并终止；
 - `workspaceFiles/read` 等文件预览接口不限制在会话目录内（DSH 自身就不限制），服务端进程可读的文件都能读——信任前提与终端相同；
 - 插件桥的整机数据需要主服务端主人逐插件同意——设置页「插件桥」里的开关，缺省全部关闭；回环执行带操作者 cookie，插件接口看到的权限与本机浏览器相同，因此桥接的边界就是声明登记的路径（exact 相等）加会话共享表，**不做**参数级扫描；
-- **适配器（better-sidebar）**：协作声明之外，zen-remote 为 `dsh-better-sidebar` **0.25.0、0.26.0、0.26.1、0.28.0-alpha.0 与 0.28.0** 内置了一个适配器（`src/adapters/`，不配合的第三方插件由它代为桥接，路由按前缀/路径段匹配、会话 id 在 JSON 体与路径段里改写）。**同意它的整机数据开关，等于让已配对的桌面应用端读写主服务端整盘文件、执行 git 写操作（提交、推送、回滚……），并通过提交信息生成消耗主服务端的模型额度**——产品上的决定就是「读写都接、不加路径围栏」，主服务端主人应当把它当成给对方一台本机终端级别的信任来开；`open.external`（在宿主机起进程）对远程会话拒绝，`settings.*` 与 `/sidebar/bundle` 留在子客户端本机；两条 WebSocket（`/sidebar/ws/fs-watch` 文件树监视、`/sidebar/ws/agent-opens` 打开推送）经字节隧道桥接（帧原样透传，浏览器不消费推送里的会话 id）；侧聊（`sidechat.*`）转发——侧聊子会话带 `meta.parentSession`，按祖先链自动继承父会话的共享，`sidechat.start` 响应里的 `childId` 会换算成虚拟 id 回给浏览器；0.28（alpha.0 与正式版）的 `changes.ops` 长轮询（`wait: true`，最长挂 25 秒，超过中继 15 秒的响应头等待）在服务端去掉 `wait`，远程会话的「本轮文件」退回 0.26 的 2.5 秒轮询；0.26 新增的 `ws/sidechat` 侧聊推送**不桥接**——远程侧聊走 0.26 自带的 15s 兜底轮询，正确性无损，只是推送降级为轮询节奏；`sidechat.models` 的模型选择器显示的是**子客户端本机**的模型目录，而选择经 `sidechat.model` 作用在**服务端**——两机目录不一致时以服务端实际生效为准；
+- **适配器（better-sidebar）**：协作声明之外，aug-remote 为 `dsh-better-sidebar` **0.25.0、0.26.0、0.26.1、0.28.0-alpha.0 与 0.28.0** 内置了一个适配器（`src/adapters/`，不配合的第三方插件由它代为桥接，路由按前缀/路径段匹配、会话 id 在 JSON 体与路径段里改写）。**同意它的整机数据开关，等于让已配对的桌面应用端读写主服务端整盘文件、执行 git 写操作（提交、推送、回滚……），并通过提交信息生成消耗主服务端的模型额度**——产品上的决定就是「读写都接、不加路径围栏」，主服务端主人应当把它当成给对方一台本机终端级别的信任来开；`open.external`（在宿主机起进程）对远程会话拒绝，`settings.*` 与 `/sidebar/bundle` 留在子客户端本机；两条 WebSocket（`/sidebar/ws/fs-watch` 文件树监视、`/sidebar/ws/agent-opens` 打开推送）经字节隧道桥接（帧原样透传，浏览器不消费推送里的会话 id）；侧聊（`sidechat.*`）转发——侧聊子会话带 `meta.parentSession`，按祖先链自动继承父会话的共享，`sidechat.start` 响应里的 `childId` 会换算成虚拟 id 回给浏览器；0.28（alpha.0 与正式版）的 `changes.ops` 长轮询（`wait: true`，最长挂 25 秒，超过中继 15 秒的响应头等待）在服务端去掉 `wait`，远程会话的「本轮文件」退回 0.26 的 2.5 秒轮询；0.26 新增的 `ws/sidechat` 侧聊推送**不桥接**——远程侧聊走 0.26 自带的 15s 兜底轮询，正确性无损，只是推送降级为轮询节奏；`sidechat.models` 的模型选择器显示的是**子客户端本机**的模型目录，而选择经 `sidechat.model` 作用在**服务端**——两机目录不一致时以服务端实际生效为准；
 - 每台设备并发流数有上限（32）、同时在途的 invoke 数也有上限（32，超出 429 `too-many-invokes`）；`*/internal` 形状的错误码（`gateway/internal` 等）只回码不带消息——那类消息引用的是服务端内部细节。事件应答按「转发时的订阅 + 设备」核对归属。审批/提问的转发是**先到先得**：服务端自己的界面和子客户端谁先应答谁生效，后答的一方被网关拒绝、同步成「已处理」。中继**不代答**：未共享会话的审批/提问事件不会被转发，服务端界面也不在线时这个审批就一直等待——网关会把仍未应答的事件转交给下一个连上来的订阅，等，而不是替你拒绝（代答会把整批待审批一次性判死，砸掉「推送 → 唤醒 → 审批」链路）。未共享会话的**通知类**事件（EMIT 帧：会话列表摘要、账号到期之类的服务端全局状态）一律不转发；唯一的例外是已共享会话（含其子会话）的 `api-session/status`——它只描述单个会话的运行/空闲，逐帧按共享表判定，子客户端靠它在主机侧一轮开始或结束时同步运行状态徽标（断线期间的翻转由重连后补拉列表纠正）。
 
 
-**better-sidebar 混合版本矩阵**——桥接与否逐端判定：桥不桥看**服务端**装的 better-sidebar 版本（在适配器版本表里 + 主人同意）；界面发什么请求看**子客户端**自己的版本（UI 在本机加载）；两端 zen-remote 不同版则适配器摘要比对失败、退隐藏档：
+**better-sidebar 混合版本矩阵**——桥接与否逐端判定：桥不桥看**服务端**装的 better-sidebar 版本（在适配器版本表里 + 主人同意）；界面发什么请求看**子客户端**自己的版本（UI 在本机加载）；两端 aug-remote 不同版则适配器摘要比对失败、退隐藏档：
 
-| 两端 zen-remote | 服务端 BS | 客户端 BS | 结果 |
+| 两端 aug-remote | 服务端 BS | 客户端 BS | 结果 |
 | --- | --- | --- | --- |
 | 新（含 0.26 适配） | 0.26 | 0.26 | 全量桥接，新功能全可用 |
 | 新 | 0.25 | 0.25 | 照常桥接，行为与旧版一致 |
@@ -372,7 +372,7 @@ sudo cloudflared service install      # 通了再装成常驻服务
 | `x-zr-query` | query 字符串（不带 `?`，会话参数已是真实 id） |
 | `accept`、`range` | 唯二透传给插件的请求头 |
 
-**校验次序**（任一失败即返回，响应带头 `x-zen-remote-error: <code>`）：网关密钥与标记 → 请求体必须为空 → 坐标头形状 → 插件在本机注册表 → 版本与摘要都等于本机 → `x-zr-path` 与声明路由**完全相等**（2.1 只有 exact 语义）→ query 只解析一次、会话参数（该路由声明的 `sessionParam`）恰好一个且非空 → 会话过共享表（含祖先链）→ `scope:'server'` 路由需 `pluginBridgeConsent[plugin] === true`（现场读行配置）→ 每设备并发预算。通过后用 `URLSearchParams` 把**解析结果重新序列化**成 query 再发出——校验的与发出去的是同一个字符串。
+**校验次序**（任一失败即返回，响应带头 `x-aug-remote-error: <code>`）：网关密钥与标记 → 请求体必须为空 → 坐标头形状 → 插件在本机注册表 → 版本与摘要都等于本机 → `x-zr-path` 与声明路由**完全相等**（2.1 只有 exact 语义）→ query 只解析一次、会话参数（该路由声明的 `sessionParam`）恰好一个且非空 → 会话过共享表（含祖先链）→ `scope:'server'` 路由需 `pluginBridgeConsent[plugin] === true`（现场读行配置）→ 每设备并发预算。通过后用 `URLSearchParams` 把**解析结果重新序列化**成 query 再发出——校验的与发出去的是同一个字符串。
 
 **错误码与状态**：
 
@@ -413,7 +413,7 @@ open 的校验链与 `/v1/plugin` **完全共享**（注册表 → 版本与摘�
 - `{"type":"ping"}` 心跳行（默认 15 秒一条）防反代掐闲置流；慢读纪律与中继流一致——客户端读不动就**暂停上游 socket**，服务端进程不为慢客户端攒字节；
 - 结束行 `{"type":"end","reason":"upstream-closed"|"upstream-error"|"client-closed"}` 后流关闭；插件发的关闭字节（若有）作为 data 行先行到达，不另造 WebSocket 关闭帧。
 
-open 的体上限 1 MiB（超出 413）；每设备并发隧道上限 8，超出 429 `busy`。隧道归属**开它的设备**（`x-zen-remote-device`）：另一台设备的 send/close 一律 404 `tunnel-unknown`；send 的 `x-zr-seq` 不等于期望序号回 409 `tunnel-out-of-order` 并**立即关闭隧道**——顺序契约破了，这条流不再可信。除这些隧道自有错误码外，其余拒绝与 `/v1/plugin` 的错误码表一致（校验链共享）。
+open 的体上限 1 MiB（超出 413）；每设备并发隧道上限 8，超出 429 `busy`。隧道归属**开它的设备**（`x-aug-remote-device`）：另一台设备的 send/close 一律 404 `tunnel-unknown`；send 的 `x-zr-seq` 不等于期望序号回 409 `tunnel-out-of-order` 并**立即关闭隧道**——顺序契约破了，这条流不再可信。除这些隧道自有错误码外，其余拒绝与 `/v1/plugin` 的错误码表一致（校验链共享）。
 
 ---
 
@@ -467,7 +467,7 @@ open 的体上限 1 MiB（超出 413）；每设备并发隧道上限 8，超出
 旧版是按来源 IP 审批的，这套逻辑在新的令牌模型下没有意义。网关用新版本第一次启动时，会检测到旧的状态文件并直接把它改名归档成 `lan-gate-state.json.v1.bak`（不做数据迁移）。所有设备都需要重新走一遍配对流程。
 
 **配对码提示过期或不对怎么办？**
-配对码 10 分钟有效、用一次就失效，过期或用过了要回到服务端的插件设置页（DSH「插件」页的 dsh-zen-remote 区块）重新生成。如果连续输错 5 次，那个来源 IP 会被锁 15 分钟，等一等或者换个网络再试。
+配对码 10 分钟有效、用一次就失效，过期或用过了要回到服务端的插件设置页（DSH「插件」页的 dsh-aug-remote 区块）重新生成。如果连续输错 5 次，那个来源 IP 会被锁 15 分钟，等一等或者换个网络再试。
 
 **推送收不到怎么排查？**
 按顺序查：手机是不是用 HTTPS 域名访问的（HTTP 下浏览器根本不会注册 Service Worker，推送无从谈起）？浏览器/PWA 有没有被系统或用户拒绝通知权限？可以到本机管理页对应的状态接口（`/lan-gate/status`）看这台设备名字后面有没有 🔔 标记，确认订阅到底成功没有。

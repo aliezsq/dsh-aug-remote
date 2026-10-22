@@ -1,4 +1,4 @@
-// dsh-zen-remote · 2.2.8: prompt `@local-path` mentions become attachments
+// dsh-aug-remote · 2.2.8: prompt `@local-path` mentions become attachments
 // (src/prompt-file-mentions.ts)
 //
 // The client backend runs on the same machine as the UI, so it can read the

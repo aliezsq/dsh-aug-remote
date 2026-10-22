@@ -1,5 +1,5 @@
 /**
- * Config resolution for dsh-zen-remote: one flat key space, four layers.
+ * Config resolution for dsh-aug-remote: one flat key space, four layers.
  *
  * 2.0.0 moved the settings surface to the DSH plugin row (the loader-owned
  * `Config` schema below), while long-time users keep their
@@ -40,7 +40,7 @@ export type ConfigSource = 'env' | 'row' | 'file' | 'default'
 const SERVER_NAME_MAX = 40
 
 /** The effective configuration one resolved value set, defaults included. */
-export interface ZenRemoteConfig {
+export interface AugRemoteConfig {
   /** Which half of the plugin runs in this DSH process; anything the layers
    * leave unresolved means `'host'` (see {@link resolveRole}). */
   role: 'host' | 'client'
@@ -90,7 +90,7 @@ function defaultServerName(): string {
 }
 
 /** Defaults, one per field — exactly what layer 4 hands back. */
-export const DEFAULTS: ZenRemoteConfig = {
+export const DEFAULTS: AugRemoteConfig = {
   role: 'host',
   port: 3088,
   host: '127.0.0.1',
@@ -269,7 +269,7 @@ interface FieldResolver<T> {
   file?: (value: unknown) => T | undefined
 }
 
-const FIELDS: { [K in keyof ZenRemoteConfig]: FieldResolver<ZenRemoteConfig[K]> } = {
+const FIELDS: { [K in keyof AugRemoteConfig]: FieldResolver<AugRemoteConfig[K]> } = {
   role: { row: oneOf('host', 'client'), file: oneOf('host', 'client') },
   port: { env: envNumber('LAN_GATE_PORT', intIn(1, 65535)), row: intIn(1, 65535), file: lenientFileNumber(intIn(1, 65535)) },
   host: { env: envString('LAN_GATE_HOST'), row: nonEmptyString, file: nonEmptyString },
@@ -297,14 +297,14 @@ const FIELDS: { [K in keyof ZenRemoteConfig]: FieldResolver<ZenRemoteConfig[K]> 
  * supplied the value. The first layer whose value passes the field's check
  * wins; earlier illegal values simply do not exist.
  */
-function resolveField<K extends keyof ZenRemoteConfig>(
+function resolveField<K extends keyof AugRemoteConfig>(
   key: K,
   row: Record<string, unknown>,
   file: Record<string, unknown>,
   env: NodeJS.ProcessEnv,
-  sources: Record<keyof ZenRemoteConfig, ConfigSource>,
-): ZenRemoteConfig[K] {
-  const field: FieldResolver<ZenRemoteConfig[K]> = FIELDS[key]
+  sources: Record<keyof AugRemoteConfig, ConfigSource>,
+): AugRemoteConfig[K] {
+  const field: FieldResolver<AugRemoteConfig[K]> = FIELDS[key]
   const fromEnv = field.env?.(env)
   if (fromEnv !== undefined) {
     sources[key] = 'env'
@@ -350,13 +350,13 @@ export function resolveConfig(
   file: Record<string, unknown>,
   env: NodeJS.ProcessEnv,
 ): {
-  values: ZenRemoteConfig
-  sources: Record<keyof ZenRemoteConfig, ConfigSource>
+  values: AugRemoteConfig
+  sources: Record<keyof AugRemoteConfig, ConfigSource>
 } {
   const safeRow = asLayer(row)
   const safeFile = asLayer(file)
-  const sources = {} as Record<keyof ZenRemoteConfig, ConfigSource>
-  const values: ZenRemoteConfig = {
+  const sources = {} as Record<keyof AugRemoteConfig, ConfigSource>
+  const values: AugRemoteConfig = {
     role: resolveField('role', safeRow, safeFile, env, sources),
     port: resolveField('port', safeRow, safeFile, env, sources),
     host: resolveField('host', safeRow, safeFile, env, sources),
