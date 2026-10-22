@@ -11,6 +11,13 @@ const root = dirname(fileURLToPath(new URL('../package.json', import.meta.url)))
 const buildDir = join(root, '.client-build')
 const outputPath = join(root, 'lib', 'client.js')
 
+// The loader id MUST equal the package name: DSH's client-modules map is keyed
+// by the installed package name, and a bundle that registers under a different
+// id logs "loaded without registering / 1 entry did not activate" and its UI
+// half never mounts (this is what broke the dsh-aug-remote rename in 2.4.2).
+const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
+const moduleId = typeof manifest.name === 'string' && manifest.name !== '' ? manifest.name : 'dsh-zen-remote'
+
 // Walk the emit dir recursively and key each module by its forward-slash
 // relative path (e.g. "index.js", "styles/index.js"). Nested emit dirs now
 // appear because the CSS lives in src/client/styles/.
@@ -76,7 +83,7 @@ const modules = order
   .join('\n')
 
 const wrapped = [
-  'window.__ModuleLoader__.load({ id: "dsh-zen-remote", factory: (require) => {',
+  `window.__ModuleLoader__.load({ id: ${JSON.stringify(moduleId)}, factory: (require) => {`,
   'var __modules = {};',
   modules,
   'var __cache = {};',
