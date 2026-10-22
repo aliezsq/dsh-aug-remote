@@ -77,11 +77,11 @@ What it can and cannot do: see [Features](#features) and [Known limitations](#kn
 **Web service from the command line** (host on a headless `dsh web` box, also where phone access still points):
 
 ```sh
-dsh plugin --profile web add dsh-zen-remote
+dsh plugin --profile web add dsh-aug-remote
 # then restart dsh web
 ```
 
-> **Upgrading the plugin with HMR on:** remove dsh-zen-remote first, then install the new version (`dsh plugin --profile <name> remove dsh-zen-remote` → `add dsh-zen-remote`, or Uninstall → Add in the Plugins page); an in-place install over the running copy is not picked up cleanly.
+> **Upgrading the plugin with HMR on:** remove dsh-zen-remote first, then install the new version (`dsh plugin --profile <name> remove dsh-aug-remote` → `add dsh-aug-remote`, or Uninstall → Add in the Plugins page); an in-place install over the running copy is not picked up cleanly.
 
 > **DSH 0.2.1-alpha.3+:** `dsh --profile <name> --from-default-profile <template>` now *replaces* an existing custom profile with a fresh template copy, deleting its `dependencies` (including dsh-zen-remote) and user `cordis.patch.yml`. Back up `~/.dsh/profiles/<name>` first (e.g. `cp -a ~/.dsh/profiles/<name> ~/.dsh/profiles/<name>.bak-$(date +%Y%m%d%H%M%S)`), then re-add the plugin afterwards. Pairing/share state under `~/.dsh/*.json` is outside the profile and is not touched.
 
@@ -93,7 +93,7 @@ dsh plugin --profile web add dsh-zen-remote
 // ~/.dsh/profiles/desktop/package.json
 {
   "dependencies": {
-    "dsh-zen-remote": "^2.3.1"        // for local development: "link:/path/to/dsh-zen-remote"
+    "dsh-aug-remote": "^2.4.0"        // for local development: "link:/path/to/dsh-aug-remote"
   }
 }
 ```
@@ -305,7 +305,7 @@ The `push_notify` tool. The model should call it when you explicitly asked to be
 
 - Remote groups in the sidebar ("server name · workspace name"), remote sessions open like local ones: full history, live progress, messages, cancels, queue edits, approvals and question answers, model selection, file tree, changes list plus changes summary/diff, goals, slash commands, agent presets, subagent prompts/interrupts, attachments and @ references, terminals running server-side
 - Artifacts a remote session produces can be **downloaded to this computer** (2.2.6): the deliverable card and the document preview header each carry a "download to this computer" action that reads the host file through the relay in byte windows (any file size, never held whole in memory) and hands it to the browser; Word/Excel/PPT previews are now rendered to PDF by the host's LibreOffice (`officeToPdf/*` is on the relay allowlist) instead of failing with "not supported in remote sessions"
-- Remote sessions can attach **non-image files**: the upload request is caught by the sub-client's own backend and streamed through the relay to the server session; the 500 MiB cap is the relay's own (local uploads have no such limit), an over-limit pick is refused locally on the client with a readable message, and slow links are bounded by the client's 15-minute upload budget (the host HTTP server's 5-minute request deadline is the practical ceiling: 500 MiB needs ~14 Mbps sustained). Files dropped into the composer take this upload path too (the desktop shell's host-path bridge is neutralized for remote sessions instead of inserting a client-local `@path`), and a client-local absolute path typed, pasted or inserted as an `@` mention is materialized on the host under `~/.dsh/tmp/prompt-attachments/<session>/` and the mention is rewritten to that SERVER path before the prompt is forwarded, so the agent reads it with its ordinary file tools (paths the server already has are left alone; an older host without the route keeps the attachment-receipt fallback)
+- Remote sessions can attach **non-image files**: the upload request is caught by the sub-client's own backend and streamed through the relay to the server session; the 500 MiB cap is the relay's own (local uploads have no such limit), an over-limit pick is refused locally on the client with a readable message, and slow links are bounded by the client's 15-minute upload budget (the host HTTP server's 5-minute request deadline is the practical ceiling: 500 MiB needs ~14 Mbps sustained). Files dropped into the composer take this upload path too (the desktop shell's host-path bridge is neutralized for remote sessions instead of inserting a client-local `@path`), and a client-local absolute path typed, pasted or inserted as an `@` mention is materialized on the host under `~/.dsh/tmp/prompt-attachments/<session>/` and the mention is rewritten to that SERVER path before the prompt is forwarded, so the agent reads it with its ordinary file tools (paths the server already has are left alone; an older host without the route keeps the attachment-receipt fallback; a file that truly cannot be sent leaves an explicit note in the prompt instead of silently staying unreadable text)
 - The model picker in a remote session lists the **server's** model catalog (groups named "server name · group name"), local sessions list only local models; the last-fetched server groups survive while the relay is offline; server groups never appear in local settings such as the vision router. Known boundary: a session created on the server that has never sent a message shows the local default model in the picker
 - New sessions created inside a remote group run on the server's workspace and are shared automatically; remote sessions can be renamed, archived, pinned, forked, and their remote access closed (with confirmation) from the client
 - Title-row connection icon per remote session (online / offline / version differs); a "remote closed" banner with the reason when a session is slept or closed server-side; offline groups go grey with input disabled and reconnect automatically with backoff

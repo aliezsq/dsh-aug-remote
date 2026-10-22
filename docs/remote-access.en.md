@@ -65,7 +65,7 @@ Inside this single plugin, the boundary between the two halves is: **this repo o
 In the desktop app or the web UI: **Plugins** page in the sidebar → **Add plugin** → type `dsh-zen-remote` → **Enable now**. A headless web service can also use the command line:
 
 ```bash
-dsh plugin --profile web add dsh-zen-remote
+dsh plugin --profile web add dsh-aug-remote
 ```
 
 The package declares a `dsh.bundle` manifest with a single row; restart DSH (the desktop app, or `dsh web`) after installing. The CLI refuses `--profile desktop` (the desktop app manages that profile itself); manual install steps live in the [root README](../README.md#install).

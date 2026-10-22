@@ -1,7 +1,7 @@
 # dsh-zen-remote — bundle patch layer（一个包，一行 insert）
 #
 # 当 profile 的 dsh.profile.bundles 列了这个包时整层生效
-# （`dsh plugin --profile web add dsh-zen-remote` 会自动写进去）。
+# （`dsh plugin --profile web add dsh-aug-remote` 会自动写进去）。
 # 随包自带，用户不需要在自己的 profile patch 里手挂任何一行。
 #
 # 2.0.0 起网关（lan-gate.mjs）和推送（dsh-push.mjs）不再各占一行：它们的
@@ -15,4 +15,4 @@
     # + host 侧路由（附件上传 / 客户端配置 / 分享导出）
     # + 按角色加载的网关与推送子插件。
     - id: dsh-zen-remote
-      name: dsh-zen-remote
+      name: dsh-aug-remote

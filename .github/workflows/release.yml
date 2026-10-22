@@ -41,7 +41,7 @@ jobs:
       - name: Create GitHub Release with the tarball and the client scripts
         run: >-
           gh release create "$GITHUB_REF_NAME"
-          ./dsh-zen-remote-*.tgz
+          ./dsh-aug-remote-*.tgz
           ./scripts/install-client.ps1
           ./scripts/rollback-client.ps1
           --generate-notes --title "$GITHUB_REF_NAME"

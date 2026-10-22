@@ -24,7 +24,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const version = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version
+const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
+const version = pkg.version
+const pkgName = pkg.name
 const checkOnly = process.argv.includes('--check')
 
 /**
@@ -38,8 +40,8 @@ const targets = ['README.md', 'README.zh-CN.md'].flatMap((file) => [
   {
     file,
     label: 'profile dependency example',
-    pattern: /"dsh-zen-remote": "\^\d+\.\d+\.\d+"/,
-    replace: `"dsh-zen-remote": "^${version}"`,
+    pattern: new RegExp(`"${pkgName}": "\\^\\d+\\.\\d+\\.\\d+"`),
+    replace: `"${pkgName}": "^${version}"`,
   },
 ])
 
